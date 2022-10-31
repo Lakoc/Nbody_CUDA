@@ -12,13 +12,12 @@ ml HDF5/1.12.2-iimpi-2022a
 ml CUDA/11.7.0
 ml Python/3.10.4-GCCcore-11.3.0
 
-cd $PROJECT_DIR
-cd $STEP
+cd $PROJECT_DIR/$STEP
 make
-cd ../tests
+cd $PROJECT_DIR/tests
 python3 -m venv py-test-env
 
 source py-test-env/bin/activate
 python3 -m pip install h5py
-run_tests.sh $STEP/nbody
+./run_tests.sh $STEP/nbody
 deactivate
