@@ -27,7 +27,7 @@ __global__ void calculate_gravitation_velocity(t_particles p, t_velocities tmp_v
         float pos_z = p.pos_z[global_id];
 
         float r, dx, dy, dz;
-        float vx, vy, vz;
+        float vx, vy, vz = 0.0f;
         float r3, G_dt_r3, Fg_dt_m2_r;
 
         for (int i = 0; i < N; i++) {
@@ -88,19 +88,22 @@ __global__ void calculate_collision_velocity(t_particles p, t_velocities tmp_vel
             dz = pos_z - p.pos_z[i];
 
             r = sqrt(dx * dx + dy * dy + dz * dz);
-            p2_weight =  p.weight[i];
-            vx += ((weight* vel_x -p2_weight *vel_x + 2* p2_weight* p.vel_x[i]) /
-                  (weight + p2_weight )) - vel_x ;
-            vy += ((weight* vel_y - p2_weight *vel_y + 2* p2_weight* p.vel_y[i]) /
-                  (weight + p2_weight )) - vel_y ;
-            vz += ((weight* vel_z - p2_weight *vel_z + 2* p2_weight* p.vel_z[i]) /
-                  (weight + p2_weight)) - vel_z ;
+            p2_weight = p.weight[i];
+            vx += (r > 0.0f && r < COLLISION_DISTANCE) ? (
+                    ((weight * vel_x - p2_weight * vel_x + 2 * p2_weight * p.vel_x[i]) /
+                     (weight + p2_weight)) - vel_x) : 0.0f;
+            vy += (r > 0.0f && r < COLLISION_DISTANCE) ? (
+                    ((weight * vel_y - p2_weight * vel_y + 2 * p2_weight * p.vel_y[i]) /
+                     (weight + p2_weight)) - vel_y) : 0.0f;
+            vz += (r > 0.0f && r < COLLISION_DISTANCE) ? (
+                    ((weight * vel_z - p2_weight * vel_z + 2 * p2_weight * p.vel_z[i]) /
+                     (weight + p2_weight)) - vel_z) : 0.0f;
         }
-        if (r > 0.0f && r < COLLISION_DISTANCE) {
-            tmp_vel.x[global_id] += vx;
-            tmp_vel.y[global_id] += vy;
-            tmp_vel.z[global_id] += vz;
-        }
+
+        tmp_vel.x[global_id] += vx;
+        tmp_vel.y[global_id] += vy;
+        tmp_vel.z[global_id] += vz;
+
     }
 
 }// end of calculate_collision_velocity

@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
 
     dim3 dimBlock(thr_blc);
 
-    dim3 dimGrid(std::ceil(float(N) / float(thr_blc)));
+    dim3 dimGrid(((N - 1) / thr_blc) + 1);
 
     gettimeofday(&t1, 0);
 
@@ -151,9 +151,9 @@ int main(int argc, char **argv) {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //                                       FILL IN: kernels invocation (step 0)                                     //
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        calculate_gravitation_velocity<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N,dt);
-        calculate_collision_velocity<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N,dt);
-        update_particle<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N,dt);
+        calculate_gravitation_velocity<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N, dt);
+        calculate_collision_velocity<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N, dt);
+        update_particle<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N, dt);
 
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

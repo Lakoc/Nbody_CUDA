@@ -19,5 +19,5 @@ python3 -m venv py-test-env
 
 source py-test-env/bin/activate
 python3 -m pip install h5py
-./run_tests.sh $STEP/nbody
+./run_tests.sh $PROJECT_DIR/$STEP
 deactivate
