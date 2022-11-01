@@ -1,6 +1,6 @@
 # Paralelní programování na GPU (PCG 2022)
 # Projekt c. 1 (cuda)
-# Login: xlogin00
+# Login: xpolok03
 
 
 N=4096
@@ -17,6 +17,7 @@ OUTPUT=step0Output.h5
 
 INCLUDE=../commons
 LIBS=-lhdf5
+LOCAL_LINKS=-I/usr/include/hdf5/serial/ -L/usr/lib/x86_64-linux-gnu/
 
 FLAGS=  
 
@@ -25,7 +26,7 @@ FLAGS=
 all: nbody
 
 nbody: nbody.cu main.cu nbody.h
-	nvcc ${FLAGS} -I${INCLUDE} -I/usr/include/hdf5/serial/ -L/usr/lib/x86_64-linux-gnu/  nbody.cu main.cu ../commons/h5Helper.cpp ${LIBS} -o nbody
+	nvcc ${FLAGS} ${LOCAL_LINKS} -I${INCLUDE} nbody.cu main.cu ../commons/h5Helper.cpp ${LIBS} -o nbody
 
 clean:
 	rm -f *.o nbody
@@ -61,48 +62,34 @@ check_output:
 check_com:
 	./nbody 10 0.01f 10000 ${THREADS_PER_BLOCK} 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
 
-PROFILE=/apps/all/CUDAcore/11.1.1/nsight-compute-2020.2.1/target/linux-desktop-glibc_2_11_3-x64/ncu --export ./Example2_profile \
-			--force-overwrite \
-			--target-processes application-only \
-			--replay-mode kernel \
-			--kernel-regex-base function \
-			--launch-skip-before-match 0 \
-			--section ComputeWorkloadAnalysis \
-			--section InstructionStats \
-			--section LaunchStats \
-			--section MemoryWorkloadAnalysis \
-			--section MemoryWorkloadAnalysis_Chart \
-			--section MemoryWorkloadAnalysis_Tables \
-			--section Occupancy \
-			--section SchedulerStats \
-			--section SourceCounters \
-			--section SpeedOfLight \
-			--section SpeedOfLight_RooflineChart \
-			--section WarpStateStats \
-			--sampling-interval auto \
-			--sampling-max-passes 5 \
-			--sampling-buffer-size 33554432 \
-			--profile-from-start 1 \
-			--cache-control all \
-			--clock-control base \
-			--apply-rules yes \
-			--check-exit-code yes
 
-prof0:
-	$(PROFILE) ./ex3 -e MatrixMultiplication/Dataset/0/output.raw -i MatrixMultiplication/Dataset/0/input0.raw,MatrixMultiplication/Dataset/0/input1.raw -t matrix
+PROFILE=/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc_2_11_3-x64/ncu --export profile_out \
+		--force-overwrite \
+		--target-processes application-only \
+		--replay-mode kernel \
+		--kernel-name-base function \
+		--launch-skip-before-match 0 \
+		--section ComputeWorkloadAnalysis \
+		--section InstructionStats \
+		--section LaunchStats \
+		--section MemoryWorkloadAnalysis \
+		--section MemoryWorkloadAnalysis_Chart \
+		--section MemoryWorkloadAnalysis_Tables \
+		--section Occupancy \
+		--section SchedulerStats \
+		--section SourceCounters \
+		--section SpeedOfLight \
+		--section SpeedOfLight_RooflineChart \
+		--section WarpStateStats \
+		--sampling-interval auto \
+		--sampling-max-passes 5 \
+		--sampling-buffer-size 33554432 \
+		--profile-from-start 1 \
+		--cache-control all \
+		--clock-control base \
+		--apply-rules yes \
+		--check-exit-code yes
 
-prof1:
-	$(PROFILE) ./ex3 -e MatrixMultiplication/Dataset/1/output.raw -i MatrixMultiplication/Dataset/1/input0.raw,MatrixMultiplication/Dataset/1/input1.raw  -t matrix
-
-prof2:
-	$(PROFILE) ./ex3 -e MatrixMultiplication/Dataset/2/output.raw -i MatrixMultiplication/Dataset/2/input0.raw,MatrixMultiplication/Dataset/2/input1.raw  -t matrix
-
-prof3:
-	$(PROFILE) ./ex3 -e MatrixMultiplication/Dataset/3/output.raw -i MatrixMultiplication/Dataset/3/input0.raw,MatrixMultiplication/Dataset/3/input1.raw  -t matrix
-
-prof4:
-	$(PROFILE) ./ex3 -e MatrixMultiplication/Dataset/4/output.raw -i MatrixMultiplication/Dataset/4/input0.raw,MatrixMultiplication/Dataset/4/input1.raw  -t matrix
-
-prof5:
-	$(PROFILE) ./ex3 -e MatrixMultiplication/Dataset/5/output.raw -i MatrixMultiplication/Dataset/5/input0.raw,MatrixMultiplication/Dataset/5/input1.raw  -t matrix
+profile:
+	$(PROFILE) ./nbody ${N} ${DT} 1 ${THREADS_PER_BLOCK} 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
 

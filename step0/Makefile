@@ -17,6 +17,7 @@ OUTPUT=step0Output.h5
 
 INCLUDE=../commons
 LIBS=-lhdf5
+LOCAL_LINKS=-I/usr/include/hdf5/serial/ -L/usr/lib/x86_64-linux-gnu/
 
 FLAGS=  
 
@@ -25,7 +26,7 @@ FLAGS=
 all: nbody
 
 nbody: nbody.cu main.cu nbody.h
-	nvcc ${FLAGS} -I${INCLUDE} nbody.cu main.cu ../commons/h5Helper.cpp ${LIBS} -o nbody
+	nvcc ${FLAGS} ${LOCAL_LINKS} -I${INCLUDE} nbody.cu main.cu ../commons/h5Helper.cpp ${LIBS} -o nbody
 
 clean:
 	rm -f *.o nbody

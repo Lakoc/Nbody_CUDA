@@ -112,37 +112,44 @@ int main(int argc, char **argv) {
     }
 
 
-    t_particles particles_gpu;
+    t_particles particles_gpu_curr;
+    t_particles particles_gpu_next;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                  FILL IN: GPU side memory allocation (step 0)                                    //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    cudaMalloc<float>(&particles_gpu.pos_x, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.pos_y, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.pos_z, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.vel_x, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.vel_y, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.vel_z, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.weight, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_curr.pos_x, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_curr.pos_y, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_curr.pos_z, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_curr.vel_x, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_curr.vel_y, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_curr.vel_z, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_curr.weight, particle_arr_size);
 
-    t_velocities velocities_gpu;
+    cudaMalloc<float>(&particles_gpu_next.pos_x, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_next.pos_y, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_next.pos_z, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_next.vel_x, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_next.vel_y, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_next.vel_z, particle_arr_size);
+    cudaMalloc<float>(&particles_gpu_next.weight, particle_arr_size);
 
-    cudaMalloc<float>(&velocities_gpu.x, particle_arr_size);
-    cudaMalloc<float>(&velocities_gpu.y, particle_arr_size);
-    cudaMalloc<float>(&velocities_gpu.z, particle_arr_size);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                       FILL IN: memory transfers (step 0)                                         //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    cudaMemcpy(particles_gpu.pos_x, particles_cpu.pos_x, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.pos_y, particles_cpu.pos_y, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.pos_z, particles_cpu.pos_z, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.vel_x, particles_cpu.vel_x, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.vel_y, particles_cpu.vel_y, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.vel_z, particles_cpu.vel_z, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.weight, particles_cpu.weight, particle_arr_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(particles_gpu_curr.pos_x, particles_cpu.pos_x, particle_arr_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(particles_gpu_curr.pos_y, particles_cpu.pos_y, particle_arr_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(particles_gpu_curr.pos_z, particles_cpu.pos_z, particle_arr_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(particles_gpu_curr.vel_x, particles_cpu.vel_x, particle_arr_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(particles_gpu_curr.vel_y, particles_cpu.vel_y, particle_arr_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(particles_gpu_curr.vel_z, particles_cpu.vel_z, particle_arr_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(particles_gpu_curr.weight, particles_cpu.weight, particle_arr_size, cudaMemcpyHostToDevice);
+
+
+    cudaMemcpy(particles_gpu_next.weight, particles_cpu.weight, particle_arr_size, cudaMemcpyHostToDevice);
 
 
     dim3 dimBlock(thr_blc);
@@ -155,9 +162,8 @@ int main(int argc, char **argv) {
         //                                       FILL IN: kernels invocation (step 0)                                     //
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        calculate_gravitation_velocity<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N, dt);
-        calculate_collision_velocity<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N, dt);
-        update_particle<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N, dt);
+        calculate_velocity<<<dimGrid, dimBlock>>>(particles_gpu_curr, particles_gpu_next, N, dt);
+        std::swap(particles_gpu_curr, particles_gpu_next);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //                                          FILL IN: synchronization  (step 4)                                    //
@@ -188,12 +194,12 @@ int main(int argc, char **argv) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     float4 comOnGPU;
 
-    cudaMemcpy(particles_cpu.pos_x, particles_gpu.pos_x, particle_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.pos_y, particles_gpu.pos_y, particle_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.pos_z, particles_gpu.pos_z, particle_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.vel_x, particles_gpu.vel_x, particle_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.vel_y, particles_gpu.vel_y, particle_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.vel_z, particles_gpu.vel_z, particle_arr_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(particles_cpu.pos_x, particles_gpu_curr.pos_x, particle_arr_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(particles_cpu.pos_y, particles_gpu_curr.pos_y, particle_arr_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(particles_cpu.pos_z, particles_gpu_curr.pos_z, particle_arr_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(particles_cpu.vel_x, particles_gpu_curr.vel_x, particle_arr_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(particles_cpu.vel_y, particles_gpu_curr.vel_y, particle_arr_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(particles_cpu.vel_z, particles_gpu_curr.vel_z, particle_arr_size, cudaMemcpyDeviceToHost);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                        FILL IN: memory transfers for center-of-mass (step 3.1, step 3.2)                         //
