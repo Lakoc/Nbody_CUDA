@@ -5,7 +5,7 @@
  *
  * Paralelní programování na GPU (PCG 2022)
  * Projekt c. 1 (cuda)
- * Login: xlogin00
+ * Login: xpolok03
  */
 
 #ifndef __NBODY_H__

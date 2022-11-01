@@ -5,11 +5,10 @@
  *
  * Paralelní programování na GPU (PCG 2022)
  * Projekt c. 1 (cuda)
- * Login: xlogin00
+ * Login: xpolok03
  */
 
 #include <sys/time.h>
-#include <cmath>
 #include <cstdio>
 #include <cmath>
 
@@ -69,6 +68,7 @@ int main(int argc, char **argv) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                            FILL IN: CPU side memory allocation (step 0)                                          //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     size_t particle_arr_size = N * sizeof(float);
     particles_cpu.pos_x = static_cast<float *>(malloc(particle_arr_size));
     particles_cpu.pos_y = static_cast<float *>(malloc(particle_arr_size));
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     particles_cpu.vel_x = static_cast<float *>(malloc(particle_arr_size));
     particles_cpu.vel_y = static_cast<float *>(malloc(particle_arr_size));
     particles_cpu.vel_z = static_cast<float *>(malloc(particle_arr_size));
-    particles_cpu.vel_z = static_cast<float *>(malloc(particle_arr_size));
+    particles_cpu.weight = static_cast<float *>(malloc(particle_arr_size));
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                              FILL IN: memory layout descriptor (step 0)                                          //
@@ -113,11 +113,11 @@ int main(int argc, char **argv) {
 
 
     t_particles particles_gpu;
-    t_velocities velocities_gpu;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                  FILL IN: GPU side memory allocation (step 0)                                    //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     cudaMalloc<float>(&particles_gpu.pos_x, particle_arr_size);
     cudaMalloc<float>(&particles_gpu.pos_y, particle_arr_size);
     cudaMalloc<float>(&particles_gpu.pos_z, particle_arr_size);
@@ -126,6 +126,8 @@ int main(int argc, char **argv) {
     cudaMalloc<float>(&particles_gpu.vel_z, particle_arr_size);
     cudaMalloc<float>(&particles_gpu.weight, particle_arr_size);
 
+    t_velocities velocities_gpu;
+
     cudaMalloc<float>(&velocities_gpu.x, particle_arr_size);
     cudaMalloc<float>(&velocities_gpu.y, particle_arr_size);
     cudaMalloc<float>(&velocities_gpu.z, particle_arr_size);
@@ -133,6 +135,7 @@ int main(int argc, char **argv) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                       FILL IN: memory transfers (step 0)                                         //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     cudaMemcpy(particles_gpu.pos_x, particles_cpu.pos_x, particle_arr_size, cudaMemcpyHostToDevice);
     cudaMemcpy(particles_gpu.pos_y, particles_cpu.pos_y, particle_arr_size, cudaMemcpyHostToDevice);
     cudaMemcpy(particles_gpu.pos_z, particles_cpu.pos_z, particle_arr_size, cudaMemcpyHostToDevice);
@@ -141,12 +144,8 @@ int main(int argc, char **argv) {
     cudaMemcpy(particles_gpu.vel_z, particles_cpu.vel_z, particle_arr_size, cudaMemcpyHostToDevice);
     cudaMemcpy(particles_gpu.weight, particles_cpu.weight, particle_arr_size, cudaMemcpyHostToDevice);
 
-    cudaMemset(velocities_gpu.x, 0, particle_arr_size);
-    cudaMemset(velocities_gpu.y, 0, particle_arr_size);
-    cudaMemset(velocities_gpu.z, 0, particle_arr_size);
 
     dim3 dimBlock(thr_blc);
-
     dim3 dimGrid(simulationGrid);
 
     gettimeofday(&t1, 0);
@@ -155,10 +154,10 @@ int main(int argc, char **argv) {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //                                       FILL IN: kernels invocation (step 0)                                     //
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         calculate_gravitation_velocity<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N, dt);
         calculate_collision_velocity<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N, dt);
         update_particle<<<dimGrid, dimBlock>>>(particles_gpu, velocities_gpu, N, dt);
-
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //                                          FILL IN: synchronization  (step 4)                                    //
@@ -188,6 +187,7 @@ int main(int argc, char **argv) {
     //                             FILL IN: memory transfers for particle data (step 0)                                 //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     float4 comOnGPU;
+
     cudaMemcpy(particles_cpu.pos_x, particles_gpu.pos_x, particle_arr_size, cudaMemcpyDeviceToHost);
     cudaMemcpy(particles_cpu.pos_y, particles_gpu.pos_y, particle_arr_size, cudaMemcpyDeviceToHost);
     cudaMemcpy(particles_cpu.pos_z, particles_gpu.pos_z, particle_arr_size, cudaMemcpyDeviceToHost);
@@ -195,7 +195,6 @@ int main(int argc, char **argv) {
     cudaMemcpy(particles_cpu.vel_y, particles_gpu.vel_y, particle_arr_size, cudaMemcpyDeviceToHost);
     cudaMemcpy(particles_cpu.vel_z, particles_gpu.vel_z, particle_arr_size, cudaMemcpyDeviceToHost);
     cudaMemcpy(particles_cpu.weight, particles_gpu.weight, particle_arr_size, cudaMemcpyDeviceToHost);
-
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                        FILL IN: memory transfers for center-of-mass (step 3.1, step 3.2)                         //

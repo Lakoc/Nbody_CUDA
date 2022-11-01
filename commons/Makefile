@@ -9,7 +9,7 @@ LIBS=-lhdf5
 all: gen
 
 gen: gen.cpp h5Helper.cpp
-	g++ gen.cpp h5Helper.cpp ${LIBS} -o gen
+	g++ -I/usr/include/hdf5/serial/ -L/usr/lib/x86_64-linux-gnu/ -o gen gen.cpp h5Helper.cpp ${LIBS}
 
 clean:
 	rm -f *.o nbody
