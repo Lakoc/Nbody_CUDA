@@ -14,6 +14,7 @@ ml Python/3.10.4-GCCcore-11.3.0
 
 cd $PROJECT_DIR/$STEP
 make
+make profile
 cd $PROJECT_DIR/tests
 python3 -m venv py-test-env
 
@@ -21,3 +22,4 @@ source py-test-env/bin/activate
 python3 -m pip install h5py
 ./run_tests.sh $PROJECT_DIR/$STEP
 deactivate
+

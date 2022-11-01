@@ -60,3 +60,35 @@ check_output:
 
 check_com:
 	./nbody 10 0.01f 10000 ${THREADS_PER_BLOCK} 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
+
+
+PROILE=/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc_2_11_3-x64/ncu --export ~/PCG_NBODY/step0/profile_out \
+		--force-overwrite \
+		--target-processes application-only \
+		--replay-mode kernel \
+		--kernel-regex-base function \
+		--launch-skip-before-match 0 \
+		--section ComputeWorkloadAnalysis \
+		--section InstructionStats \
+		--section LaunchStats \
+		--section MemoryWorkloadAnalysis \
+		--section MemoryWorkloadAnalysis_Chart \
+		--section MemoryWorkloadAnalysis_Tables \
+		--section Occupancy \
+		--section SchedulerStats \
+		--section SourceCounters \
+		--section SpeedOfLight \
+		--section SpeedOfLight_RooflineChart \
+		--section WarpStateStats \
+		--sampling-interval auto \
+		--sampling-max-passes 5 \
+		--sampling-buffer-size 33554432 \
+		--profile-from-start 1 \
+		--cache-control all \
+		--clock-control base \
+		--apply-rules yes \
+		--check-exit-code yes
+
+profile:
+	$(PROFILE) ./nbody ${N} ${DT} 1 ${THREADS_PER_BLOCK} 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
+
