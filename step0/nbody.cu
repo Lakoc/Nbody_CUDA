@@ -21,39 +21,37 @@
  */
 __global__ void calculate_gravitation_velocity(t_particles p, t_velocities tmp_vel, int N, float dt) {
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
-    if (global_id < N) {
-        float pos_x = p.pos_x[global_id];
-        float pos_y = p.pos_y[global_id];
-        float pos_z = p.pos_z[global_id];
+    float pos_x = p.pos_x[global_id];
+    float pos_y = p.pos_y[global_id];
+    float pos_z = p.pos_z[global_id];
 
-        float r, dx, dy, dz;
-        float vx, vy, vz = 0.0f;
-        float r3, G_dt_r3, Fg_dt_m2_r;
+    float r, dx, dy, dz;
+    float vx, vy, vz = 0.0f;
+    float r3, G_dt_r3, Fg_dt_m2_r;
+    bool not_colliding;
+    for (int i = 0; i < N; i++) {
+        dx = pos_x - p.pos_x[i];
+        dy = pos_y - p.pos_y[i];
+        dz = pos_z - p.pos_z[i];
 
-        for (int i = 0; i < N; i++) {
-            if (i != global_id) {
-                dx = pos_x - p.pos_x[i];
-                dy = pos_y - p.pos_y[i];
-                dz = pos_z - p.pos_z[i];
+        r = sqrt(dx * dx + dy * dy + dz * dz);
+        not_colliding = r > COLLISION_DISTANCE;
 
-                r = sqrt(dx * dx + dy * dy + dz * dz);
+        r3 = r * r * r + FLT_MIN;
 
-                r3 = r * r * r + FLT_MIN;
+        // Fg*dt/m1/r = G*m1*m2*dt / r^3 / m1 = G*dt/r^3 * m2
+        G_dt_r3 = -G * dt / r3;
+        Fg_dt_m2_r = G_dt_r3 * p.weight[i];
 
-                // Fg*dt/m1/r = G*m1*m2*dt / r^3 / m1 = G*dt/r^3 * m2
-                G_dt_r3 = -G * dt / r3;
-                Fg_dt_m2_r = G_dt_r3 * p.weight[i];
 
-                // vx = - Fx*dt/m2 = - Fg*dt/m2 * dx/r = - Fg*dt/m2/r * dx
-                vx += (r > COLLISION_DISTANCE) ? Fg_dt_m2_r * dx : 0.0f;
-                vy += (r > COLLISION_DISTANCE) ? Fg_dt_m2_r * dy : 0.0f;
-                vz += (r > COLLISION_DISTANCE) ? Fg_dt_m2_r * dz : 0.0f;
-            }
-        }
-        tmp_vel.x[global_id] = vx;
-        tmp_vel.y[global_id] = vy;
-        tmp_vel.z[global_id] = vz;
+        // vx = - Fx*dt/m2 = - Fg*dt/m2 * dx/r = - Fg*dt/m2/r * dx
+        vx += not_colliding ? Fg_dt_m2_r * dx : 0.0f;
+        vy += not_colliding ? Fg_dt_m2_r * dy : 0.0f;
+        vz += not_colliding ? Fg_dt_m2_r * dz : 0.0f;
     }
+    tmp_vel.x[global_id] = vx;
+    tmp_vel.y[global_id] = vy;
+    tmp_vel.z[global_id] = vz;
 
 }// end of calculate_gravitation_velocity
 //----------------------------------------------------------------------------------------------------------------------
@@ -67,45 +65,42 @@ __global__ void calculate_gravitation_velocity(t_particles p, t_velocities tmp_v
  */
 __global__ void calculate_collision_velocity(t_particles p, t_velocities tmp_vel, int N, float dt) {
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
-
-    if (global_id < N) {
-        float pos_x = p.pos_x[global_id];
-        float pos_y = p.pos_y[global_id];
-        float pos_z = p.pos_z[global_id];
-        float weight = p.weight[global_id];
-        float vel_x = p.vel_x[global_id];
-        float vel_y = p.vel_y[global_id];
-        float vel_z = p.vel_z[global_id];
+    float pos_x = p.pos_x[global_id];
+    float pos_y = p.pos_y[global_id];
+    float pos_z = p.pos_z[global_id];
+    float weight = p.weight[global_id];
+    float vel_x = p.vel_x[global_id];
+    float vel_y = p.vel_y[global_id];
+    float vel_z = p.vel_z[global_id];
 
 
-        float r, dx, dy, dz;
-        float vx, vy, vz = 0.0f;
-        float p2_weight;
+    float r, dx, dy, dz;
+    float vx, vy, vz = 0.0f;
+    float p2_weight;
+    bool colliding;
+    float m1_minus_m2;
+    float m1_plus_m2;
+    float m22;
 
-        for (int i = 0; i < N; i++) {
-            dx = pos_x - p.pos_x[i];
-            dy = pos_y - p.pos_y[i];
-            dz = pos_z - p.pos_z[i];
+    for (int i = 0; i < N; i++) {
+        dx = pos_x - p.pos_x[i];
+        dy = pos_y - p.pos_y[i];
+        dz = pos_z - p.pos_z[i];
 
-            r = sqrt(dx * dx + dy * dy + dz * dz);
-            p2_weight = p.weight[i];
-            vx += (r > 0.0f && r < COLLISION_DISTANCE) ? (
-                    ((weight * vel_x - p2_weight * vel_x + 2 * p2_weight * p.vel_x[i]) /
-                     (weight + p2_weight)) - vel_x) : 0.0f;
-            vy += (r > 0.0f && r < COLLISION_DISTANCE) ? (
-                    ((weight * vel_y - p2_weight * vel_y + 2 * p2_weight * p.vel_y[i]) /
-                     (weight + p2_weight)) - vel_y) : 0.0f;
-            vz += (r > 0.0f && r < COLLISION_DISTANCE) ? (
-                    ((weight * vel_z - p2_weight * vel_z + 2 * p2_weight * p.vel_z[i]) /
-                     (weight + p2_weight)) - vel_z) : 0.0f;
-        }
-
-        tmp_vel.x[global_id] += vx;
-        tmp_vel.y[global_id] += vy;
-        tmp_vel.z[global_id] += vz;
-
+        r = sqrt(dx * dx + dy * dy + dz * dz);
+        p2_weight = p.weight[i];
+        colliding = r > 0.0f && r < COLLISION_DISTANCE;
+        m1_minus_m2 = weight - p2_weight;
+        m1_plus_m2 = weight + p2_weight;
+        m22 = p2_weight * 2.0;
+        vx += colliding ? ((vel_x * m1_minus_m2 + m22 * p.vel_x[i]) / m1_plus_m2) - vel_x : 0.0f;
+        vy += colliding ? ((vel_y * m1_minus_m2 + m22 * p.vel_y[i]) / m1_plus_m2) - vel_y : 0.0f;
+        vz += colliding ? ((vel_z * m1_minus_m2 + m22 * p.vel_z[i]) / m1_plus_m2) - vel_z : 0.0f;
     }
 
+    tmp_vel.x[global_id] += vx;
+    tmp_vel.y[global_id] += vy;
+    tmp_vel.z[global_id] += vz;
 }// end of calculate_collision_velocity
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -118,14 +113,12 @@ __global__ void calculate_collision_velocity(t_particles p, t_velocities tmp_vel
  */
 __global__ void update_particle(t_particles p, t_velocities tmp_vel, int N, float dt) {
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
-    if (global_id < N) {
-        p.vel_x[global_id] += tmp_vel.x[global_id];
-        p.vel_y[global_id] += tmp_vel.y[global_id];
-        p.vel_z[global_id] += tmp_vel.z[global_id];
-        p.pos_x[global_id] += p.vel_x[global_id] * dt;
-        p.pos_y[global_id] += p.vel_y[global_id] * dt;
-        p.pos_z[global_id] += p.vel_z[global_id] * dt;
-    }
+    p.vel_x[global_id] += tmp_vel.x[global_id];
+    p.vel_y[global_id] += tmp_vel.y[global_id];
+    p.vel_z[global_id] += tmp_vel.z[global_id];
+    p.pos_x[global_id] += p.vel_x[global_id] * dt;
+    p.pos_y[global_id] += p.vel_y[global_id] * dt;
+    p.pos_z[global_id] += p.vel_z[global_id] * dt;
 
 }// end of update_particle
 //----------------------------------------------------------------------------------------------------------------------

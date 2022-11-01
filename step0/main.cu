@@ -141,9 +141,13 @@ int main(int argc, char **argv) {
     cudaMemcpy(particles_gpu.vel_z, particles_cpu.vel_z, particle_arr_size, cudaMemcpyHostToDevice);
     cudaMemcpy(particles_gpu.weight, particles_cpu.weight, particle_arr_size, cudaMemcpyHostToDevice);
 
+    cudaMemset(velocities_gpu.x, 0, particle_arr_size);
+    cudaMemset(velocities_gpu.y, 0, particle_arr_size);
+    cudaMemset(velocities_gpu.z, 0, particle_arr_size);
+
     dim3 dimBlock(thr_blc);
 
-    dim3 dimGrid(((N - 1) / thr_blc) + 1);
+    dim3 dimGrid(simulationGrid);
 
     gettimeofday(&t1, 0);
 
