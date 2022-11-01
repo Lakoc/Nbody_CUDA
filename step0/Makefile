@@ -66,7 +66,7 @@ PROFILE=/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc
 		--force-overwrite \
 		--target-processes application-only \
 		--replay-mode kernel \
-		--kernel-regex-base function \
+		--kernel-name-base function \
 		--launch-skip-before-match 0 \
 		--section ComputeWorkloadAnalysis \
 		--section InstructionStats \
