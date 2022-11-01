@@ -62,7 +62,7 @@ check_com:
 	./nbody 10 0.01f 10000 ${THREADS_PER_BLOCK} 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
 
 
-PROILE=/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc_2_11_3-x64/ncu --export ~/PCG_NBODY/step0/profile_out \
+PROFILE=/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc_2_11_3-x64/ncu --export profile_out \
 		--force-overwrite \
 		--target-processes application-only \
 		--replay-mode kernel \
