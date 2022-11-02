@@ -7,22 +7,22 @@ Login: xlogin00
 Krok 0: základní implementace
 =============================
 i           Velikost dat    	čas jedne iterace [s]
-10          N: 25600            Time: 6.452847 s
-11          N: 28160            Time: 7.104080 s
-12          N: 30720            Time: 7.724572 s
-13          N: 33280            Time: 8.370688 s
-14          N: 35840            Time: 9.014786 s
-15          N: 38400            Time: 9.655589 s
-16          N: 40960            Time: 10.293236 s
-17          N: 43520            Time: 10.930719 s
-18          N: 46080            Time: 11.571335 s
-19          N: 48640            Time: 12.211179 s
-20          N: 51200            Time: 12.859425 s
-21          N: 53760            Time: 13.523807 s
-22          N: 56320            Time: 23.486361 s
-23          N: 58880            Time: 24.580115 s
-24          N: 61440            Time: 25.728031 s
-25          N: 64000            Time: 26.906580 s
+10          N: 25600            Time: 0.012882 s
+11          N: 28160            Time: 0.014168 s
+12          N: 30720            Time: 0.015453 s
+13          N: 33280            Time: 0.016755 s
+14          N: 35840            Time: 0.018018 s
+15          N: 38400            Time: 0.019293 s
+16          N: 40960            Time: 0.020587 s
+17          N: 43520            Time: 0.021878 s
+18          N: 46080            Time: 0.023171 s
+19          N: 48640            Time: 0.024450 s
+20          N: 51200            Time: 0.025732 s
+21          N: 53760            Time: 0.027020 s
+22          N: 56320            Time: 0.046741 s
+23          N: 58880            Time: 0.048917 s
+24          N: 61440            Time: 0.051202 s
+25          N: 64000            Time: 0.053444 s
 
 Vyskytlo se něco neočekávaného v naměřených časech  
 Pokud ano, vysvětlete:
