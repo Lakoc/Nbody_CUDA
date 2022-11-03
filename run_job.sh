@@ -15,6 +15,7 @@ ml Python/3.10.4-GCCcore-11.3.0
 cd $PROJECT_DIR/$STEP
 make
 make profile
+make profile_long_runtime
 cd $PROJECT_DIR/tests
 python3 -m venv py-test-env
 
