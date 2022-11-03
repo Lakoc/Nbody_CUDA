@@ -14,8 +14,8 @@ WRITE_INTESITY=20
 SAMPLE_INPUT=../sampledata/sampleInput.h5
 SAMPLE_OUTPUT=../sampledata/sampleOutput.h5
 OUTPUT=step0Output.h5
-LONG_INPUT=sampledata/input_long.h5
-LONG_OUTPUT=sampledata/input_long_out.h5
+LONG_INPUT=../sampledata/input_long.h5
+LONG_OUTPUT=../sampledata/input_long_out.h5
 
 INCLUDE=../commons
 LIBS=-lhdf5
