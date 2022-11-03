@@ -91,8 +91,11 @@ PROFILE=/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc
 		--apply-rules yes \
 		--check-exit-code yes
 
-profile_long_runtime:
-	$(PROFILE) --export profile_out_long ./nbody 56320 ${DT} 1 512 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(LONG_INPUT) $(LONG_OUTPUT)
+profile_long_1:
+	$(PROFILE) --export profile_out_long1 ./nbody 53760 ${DT} 1 512 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(LONG_INPUT) $(LONG_OUTPUT)
+
+profile_long_2:
+	$(PROFILE) --export profile_out_long2 ./nbody 56320 ${DT} 1 512 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(LONG_INPUT) $(LONG_OUTPUT)
 
 profile:
 	$(PROFILE) --export profile_out ./nbody ${N} ${DT} 1 ${THREADS_PER_BLOCK} 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
