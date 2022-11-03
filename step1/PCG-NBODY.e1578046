@@ -1,0 +1,2 @@
+WARNING: You are using pip version 22.0.4; however, version 22.3 is available.
+You should consider upgrading via the '/home/lakoc/PCG_NBODY/tests/py-test-env/bin/python3 -m pip install --upgrade pip' command.
