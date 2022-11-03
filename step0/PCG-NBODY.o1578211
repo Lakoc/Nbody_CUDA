@@ -1,22 +1,23 @@
 make: Nothing to be done for `all'.
-/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc_2_11_3-x64/ncu		--force-overwrite --target-processes application-only --replay-mode kernel --kernel-name-base function --launch-skip-before-match 0 --section ComputeWorkloadAnalysis --section InstructionStats --section LaunchStats --section MemoryWorkloadAnalysis --section MemoryWorkloadAnalysis_Chart --section MemoryWorkloadAnalysis_Tables --section Occupancy --section SchedulerStats --section SourceCounters --section SpeedOfLight --section SpeedOfLight_RooflineChart --section WarpStateStats --sampling-interval auto --sampling-max-passes 5 --sampling-buffer-size 33554432 --profile-from-start 1 --cache-control all --clock-control base --apply-rules yes --check-exit-code yes --export profile_out ./nbody 4096 0.01f 1 128 0 4096 128 ../sampledata/sampleInput.h5 step0Output.h5
-==PROF== Connected to process 97047 (/home/lakoc/PCG_NBODY/step0/nbody)
+/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc_2_11_3-x64/ncu		--force-overwrite --target-processes application-only --replay-mode kernel --kernel-name-base function --launch-skip-before-match 0 --section ComputeWorkloadAnalysis --section InstructionStats --section LaunchStats --section MemoryWorkloadAnalysis --section MemoryWorkloadAnalysis_Chart --section MemoryWorkloadAnalysis_Tables --section Occupancy --section SchedulerStats --section SourceCounters --section SpeedOfLight --section SpeedOfLight_RooflineChart --section WarpStateStats --sampling-interval auto --sampling-max-passes 5 --sampling-buffer-size 33554432 --profile-from-start 1 --cache-control all --clock-control base --apply-rules yes --check-exit-code yes --export profile_out ./nbody 110592  0.01f 1 1024 0 4096 128 ../sampledata/input_long.h5 ../sampledata/input_long_out.h5
+N: 110592
+dt: 0.010000
+steps: 1
+threads/block: 1024
+blocks/grid: 108
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+==PROF== Connected to process 129880 (/home/lakoc/PCG_NBODY/step0/nbody)
 ==PROF== Profiling "calculate_gravitation_velocity" - 0: 0%....50%....100% - 44 passes
 ==PROF== Profiling "calculate_collision_velocity" - 1: 0%....50%....100% - 44 passes
 ==PROF== Profiling "update_particle" - 2: 0%....50%....100% - 44 passes
-N: 4096
-dt: 0.010000
-steps: 1
-threads/block: 128
-blocks/grid: 32
-reduction threads/block: 128
-reduction blocks/grid: 32
-Time: 9.812686 s
+Time: 80.015625 s
 Center of mass on CPU:
-50.238, 49.0439, 49.3568, 5.14346e+12
+50.0462, 49.9521, 50.0113, 1.37895e+14
 Center of mass on GPU:
 0, 0, 0, 0
-==PROF== Disconnected from process 97047
+==PROF== Disconnected from process 129880
 ==PROF== Report: /home/lakoc/PCG_NBODY/step0/profile_out.ncu-rep
 /apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc_2_11_3-x64/ncu		--force-overwrite --target-processes application-only --replay-mode kernel --kernel-name-base function --launch-skip-before-match 0 --section ComputeWorkloadAnalysis --section InstructionStats --section LaunchStats --section MemoryWorkloadAnalysis --section MemoryWorkloadAnalysis_Chart --section MemoryWorkloadAnalysis_Tables --section Occupancy --section SchedulerStats --section SourceCounters --section SpeedOfLight --section SpeedOfLight_RooflineChart --section WarpStateStats --sampling-interval auto --sampling-max-passes 5 --sampling-buffer-size 33554432 --profile-from-start 1 --cache-control all --clock-control base --apply-rules yes --check-exit-code yes --export profile_out_long1 ./nbody 53760 0.01f 1 512 0 4096 128 ../sampledata/input_long.h5 ../sampledata/input_long_out.h5
 N: 53760
@@ -27,16 +28,16 @@ blocks/grid: 105
 reduction threads/block: 128
 reduction blocks/grid: 32
 Input file contains more elements than required! Ommiting the rest.
-==PROF== Connected to process 97100 (/home/lakoc/PCG_NBODY/step0/nbody)
+==PROF== Connected to process 130102 (/home/lakoc/PCG_NBODY/step0/nbody)
 ==PROF== Profiling "calculate_gravitation_velocity" - 0: 0%....50%....100% - 44 passes
 ==PROF== Profiling "calculate_collision_velocity" - 1: 0%....50%....100% - 44 passes
 ==PROF== Profiling "update_particle" - 2: 0%....50%....100% - 44 passes
-Time: 28.301048 s
+Time: 27.019316 s
 Center of mass on CPU:
-49.9543, 49.7136, 50.1309, 6.69873e+13
+50.0747, 50.0441, 50.035, 6.71088e+13
 Center of mass on GPU:
-2.8026e-45, 0, 8.40779e-45, -0
-==PROF== Disconnected from process 97100
+0, 0, 0, 0
+==PROF== Disconnected from process 130102
 ==PROF== Report: /home/lakoc/PCG_NBODY/step0/profile_out_long1.ncu-rep
 /apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc_2_11_3-x64/ncu		--force-overwrite --target-processes application-only --replay-mode kernel --kernel-name-base function --launch-skip-before-match 0 --section ComputeWorkloadAnalysis --section InstructionStats --section LaunchStats --section MemoryWorkloadAnalysis --section MemoryWorkloadAnalysis_Chart --section MemoryWorkloadAnalysis_Tables --section Occupancy --section SchedulerStats --section SourceCounters --section SpeedOfLight --section SpeedOfLight_RooflineChart --section WarpStateStats --sampling-interval auto --sampling-max-passes 5 --sampling-buffer-size 33554432 --profile-from-start 1 --cache-control all --clock-control base --apply-rules yes --check-exit-code yes --export profile_out_long2 ./nbody 56320 0.01f 1 512 0 4096 128 ../sampledata/input_long.h5 ../sampledata/input_long_out.h5
 N: 56320
@@ -47,16 +48,16 @@ blocks/grid: 110
 reduction threads/block: 128
 reduction blocks/grid: 32
 Input file contains more elements than required! Ommiting the rest.
-==PROF== Connected to process 97162 (/home/lakoc/PCG_NBODY/step0/nbody)
+==PROF== Connected to process 130166 (/home/lakoc/PCG_NBODY/step0/nbody)
 ==PROF== Profiling "calculate_gravitation_velocity" - 0: 0%....50%....100% - 44 passes
 ==PROF== Profiling "calculate_collision_velocity" - 1: 0%....50%....100% - 44 passes
 ==PROF== Profiling "update_particle" - 2: 0%....50%....100% - 44 passes
-Time: 35.386190 s
+Time: 31.731180 s
 Center of mass on CPU:
-49.9812, 49.7161, 50.0946, 7.01923e+13
+50.0849, 50.0141, 50.0212, 7.02621e+13
 Center of mass on GPU:
 0, 0, 0, 0
-==PROF== Disconnected from process 97162
+==PROF== Disconnected from process 130166
 ==PROF== Report: /home/lakoc/PCG_NBODY/step0/profile_out_long2.ncu-rep
 Requirement already satisfied: h5py in ./py-test-env/lib/python3.10/site-packages (3.7.0)
 Requirement already satisfied: numpy>=1.14.5 in ./py-test-env/lib/python3.10/site-packages (from h5py) (1.23.4)
