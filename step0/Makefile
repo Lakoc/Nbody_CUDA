@@ -98,4 +98,4 @@ profile_long_2:
 	$(PROFILE) --export profile_out_long2 ./nbody 56320 ${DT} 1 512 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(LONG_INPUT) $(LONG_OUTPUT)
 
 profile:
-	$(PROFILE) --export profile_out ./nbody ${N} ${DT} 1 ${THREADS_PER_BLOCK} 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
+	$(PROFILE) --export profile_out ./nbody 221184  ${DT} 5 2048 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(LONG_INPUT) $(LONG_OUTPUT)

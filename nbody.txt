@@ -16,11 +16,6 @@ Ratio of SM registers to FP32 cores	1024
 Shared Memory Size / SM 	Configurable up to 164 KB
 
 
-512 threads per block
-
-Registers: ok
-
-
 Krok 0: základní implementace
 =============================
 i           Velikost dat    	čas jedne iterace [s]
@@ -43,10 +38,11 @@ i           Velikost dat    	čas jedne iterace [s]
 
 Vyskytlo se něco neočekávaného v naměřených časech  
 Pokud ano, vysvětlete:
+
 Grafická karta Nvidia A100 na clusteru Karolina disponuje 108 SM jednotkami.
-Dle zadání blok disponuje 512 vlákny, tudiž vstup o velikosti N=53760 se mapuje na 105 bloků, což vede k dobrému využití skoro všech SM jednotek.
+Dle zadání blok disponuje 512 vlákny, tudiž vstup o velikosti N=53760 se mapuje na 105 bloků, což vede k dobrému využití (105/108) skoro všech SM jednotek.
 Naopak vstup o velikosti N=56320 se mapuje na 110 bloků. Avšak není možné najednou namapovat 110 bloků na HW s 108 SM jednotkami.
-Tedy zbylé dva bloky musí čekat, až budou spočteny některé dva bloky, aby mohly zahájit svojí činnost, což vedle k časové prodlevě.
+Tedy zbylé dva bloky musí čekat, až budou spočteny některé dva bloky, aby mohly zahájit svojí činnost, což vede k časové prodlevě.
 
 
 Krok 1: optimalizace kódu
