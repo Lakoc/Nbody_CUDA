@@ -67,10 +67,10 @@ Time: 0.033041 s
 
 Popište hlavní důvody:
 
-Ano, odpadla synchronizace mezi kernely, taktéž došlo k lepšímu znovupoužití načtených hodnot v registrech.
+Ano, došlo ke zrychlení cca 40% oproti původní verzi, jelikož odpadla synchronizace mezi kernely, taktéž došlo k lepšímu znovupoužití načtených hodnot v registrech.
 Odpadla nutnost počítat veličiny jako vzdálenost dvakrát.
 Částice do sebe naražejí, nebo na sebe působí gravitační sílu, došlo tedy k omezení zbytečného kódu, kdy probíhal výpočet avšak do vektoru rychlosti byla přiřazena 0.
-Nyní je v obou případech přičtena nová rychlost a došlo k jistému snížení divergence vláken (2x2->2).
+Nyní je v obou případech přičtena nová rychlost a došlo k jistému snížení divergence vláken při zapsání výsledků (2x2->2).
 
 Krok 2: sdílená paměť
 =====================
