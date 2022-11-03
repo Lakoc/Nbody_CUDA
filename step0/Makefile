@@ -14,6 +14,8 @@ WRITE_INTESITY=20
 SAMPLE_INPUT=../sampledata/sampleInput.h5
 SAMPLE_OUTPUT=../sampledata/sampleOutput.h5
 OUTPUT=step0Output.h5
+LONG_INPUT=sampledata/input_long.h5
+LONG_OUTPUT=sampledata/input_long_out.h5
 
 INCLUDE=../commons
 LIBS=-lhdf5
@@ -90,7 +92,7 @@ PROFILE=/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc
 		--check-exit-code yes
 
 profile_long_runtime:
-	$(PROFILE) --export profile_out_long ./nbody 56320 ${DT} 1 512 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
+	$(PROFILE) --export profile_out_long ./nbody 56320 ${DT} 1 512 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(LONG_INPUT) $(LONG_OUTPUT)
 
 profile:
 	$(PROFILE) --export profile_out ./nbody ${N} ${DT} 1 ${THREADS_PER_BLOCK} 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
