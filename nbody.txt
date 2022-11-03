@@ -2,20 +2,6 @@ Paralelní programování na GPU (PCG 2022)
 Projekt c. 1 (cuda)
 Login: xpolok03
 
-Nvidia A100 spec:
-Threads / warp		32
-Max warps / SM		64
-Max threads / SM		2048
-Max thread blocks / SM		32
-Max 32-bit registers / SM		65536
-Max registers / block		65536
-Max registers / thread		255
-Max thread block size		1024
-FP32 cores / SM		64
-Ratio of SM registers to FP32 cores	1024
-Shared Memory Size / SM 	Configurable up to 164 KB
-
-
 Krok 0: základní implementace
 =============================
 i           Velikost dat    	čas jedne iterace [s]
@@ -68,7 +54,7 @@ Time: 0.033041 s
 Popište hlavní důvody:
 
 Ano, došlo ke zrychlení cca 40% oproti původní verzi, jelikož odpadla synchronizace mezi kernely, taktéž došlo k lepšímu znovupoužití načtených hodnot v registrech.
-Odpadla nutnost počítat veličiny jako vzdálenost dvakrát.
+Odpadla nutnost počítat veličiny jako vzdálenost na ose x,y, ... dvakrát.
 Částice do sebe naražejí, nebo na sebe působí gravitační sílu, došlo tedy k omezení zbytečného kódu, kdy probíhal výpočet avšak do vektoru rychlosti byla přiřazena 0.
 Nyní je v obou případech přičtena nová rychlost a došlo k jistému snížení divergence vláken při zapsání výsledků (2x2->2).
 
