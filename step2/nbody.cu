@@ -35,7 +35,6 @@ __global__ void calculate_velocity(t_particles p_curr,
                                    int N,
                                    float dt) {
     extern __shared__ float shared[];
-    unsigned pitch = N * sizeof(float);
     int elements_to_cache = (int) (dynamic_smem_size() / (blockDim.x * sizeof(float)));
 
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -47,15 +46,23 @@ __global__ void calculate_velocity(t_particles p_curr,
     float vel_x = p_curr.vel_x[global_id];
     float vel_y = p_curr.vel_y[global_id];
     float vel_z = p_curr.vel_z[global_id];
-    float *mem_pos_x = elements_to_cache > POS_X ? &shared[POS_X * blockDim.x] : p_curr.pos_x;
-    float *mem_pos_y = elements_to_cache > POS_Y ? &shared[POS_Y * blockDim.x] : p_curr.pos_y;
-    float *mem_pos_z = elements_to_cache > POS_Z ? &shared[POS_Z * blockDim.x] : p_curr.pos_z;
-    float *mem_vel_x = elements_to_cache > VEL_X ? &shared[VEL_X * blockDim.x] : p_curr.vel_x;
-    float *mem_vel_y = elements_to_cache > VEL_Y ? &shared[VEL_Y * blockDim.x] : p_curr.vel_y;
-    float *mem_vel_z = elements_to_cache > VEL_Z ? &shared[VEL_Z * blockDim.x] : p_curr.vel_z;
-    float *mem_weight = elements_to_cache > WEIGHT ? &shared[WEIGHT * blockDim.x] : p_curr.weight;
 
-    unsigned offsets[N_ELEMENTS] = {0, 0, 0, 0, 0, 0, 0};
+    unsigned in_mem_pos_x = elements_to_cache < POS_X;
+    unsigned in_mem_pos_y = elements_to_cache < POS_Y;
+    unsigned in_mem_pos_z = elements_to_cache < POS_Z;
+    unsigned in_mem_vel_x = elements_to_cache < VEL_X;
+    unsigned in_mem_vel_y = elements_to_cache < VEL_Y;
+    unsigned in_mem_vel_z = elements_to_cache < VEL_Z;
+    unsigned in_mem_weight = elements_to_cache < WEIGHT;
+
+    float *mem_pos_x = !in_mem_pos_x ? &shared[POS_X * blockDim.x] : p_curr.pos_x;
+    float *mem_pos_y = !in_mem_pos_y ? &shared[POS_Y * blockDim.x] : p_curr.pos_y;
+    float *mem_pos_z = !in_mem_pos_z ? &shared[POS_Z * blockDim.x] : p_curr.pos_z;
+    float *mem_vel_x = !in_mem_vel_x ? &shared[VEL_X * blockDim.x] : p_curr.vel_x;
+    float *mem_vel_y = !in_mem_vel_y ? &shared[VEL_Y * blockDim.x] : p_curr.vel_y;
+    float *mem_vel_z = !in_mem_vel_z ? &shared[VEL_Z * blockDim.x] : p_curr.vel_z;
+    float *mem_weight = !in_mem_weight ? &shared[WEIGHT * blockDim.x] : p_curr.weight;
+
     float *global_arrays[N_ELEMENTS] = {p_curr.pos_x, p_curr.pos_y, p_curr.pos_z, p_curr.vel_x, p_curr.vel_y,
                                         p_curr.vel_z, p_curr.weight};
 
@@ -65,25 +72,29 @@ __global__ void calculate_velocity(t_particles p_curr,
     float vz = 0.0f;
     bool colliding;
     unsigned load_index;
+    unsigned block_offset;
 
     for (int tile = 0; tile < gridDim.x; tile++) {
-        load_index = tile * blockDim.x + threadIdx.x;
+        block_offset = tile * blockDim.x;
+        load_index = block_offset + threadIdx.x;
+
         for (int j = 0; j < elements_to_cache; j++) {
             shared[j * blockDim.x + threadIdx.x] = global_arrays[j][load_index];
         }
         __syncthreads();
+#pragma unroll 4
         for (int i = 0; i < blockDim.x; i++) {
 
-            dx =  mem_pos_x[offsets[POS_X] + i] - pos_x;
-            dy =  mem_pos_y[offsets[POS_Y] + i] - pos_y;
-            dz =  mem_pos_z[offsets[POS_Z] + i] - pos_z;
+            dx = mem_pos_x[block_offset * in_mem_pos_x + i] - pos_x;
+            dy = mem_pos_y[block_offset * in_mem_pos_y + i] - pos_y;
+            dz = mem_pos_z[block_offset * in_mem_pos_z + i] - pos_z;
 
             r = sqrt(dx * dx + dy * dy + dz * dz);
             r3 = r * r * r + FLT_MIN;
             colliding = r > 0.0f && r <= COLLISION_DISTANCE;
 
 
-            p2_weight = mem_weight[offsets[WEIGHT] + i];
+            p2_weight = mem_weight[block_offset * in_mem_weight + i];
             weight_difference = p1_weight - p2_weight;
             weight_sum = p1_weight + p2_weight;
             double_m2 = p2_weight * 2.0f;
@@ -92,19 +103,17 @@ __global__ void calculate_velocity(t_particles p_curr,
 
 
             vx += colliding ?
-                  ((vel_x * weight_difference + double_m2 * mem_vel_x[offsets[VEL_X] + i]) / weight_sum) - vel_x :
+                  ((vel_x * weight_difference + double_m2 * mem_vel_x[block_offset * in_mem_vel_x + i]) / weight_sum) - vel_x :
                   Fg_dt_m2_r * dx;
             vy += colliding ?
-                  ((vel_y * weight_difference + double_m2 * mem_vel_y[offsets[VEL_Y] + i]) / weight_sum) - vel_y :
+                  ((vel_y * weight_difference + double_m2 * mem_vel_y[block_offset * in_mem_vel_y + i]) / weight_sum) - vel_y :
                   Fg_dt_m2_r * dy;
             vz += colliding ?
-                  ((vel_z * weight_difference + double_m2 * mem_vel_z[offsets[VEL_Z] + i]) / weight_sum) - vel_z :
+                  ((vel_z * weight_difference + double_m2 * mem_vel_z[block_offset * in_mem_vel_z + i]) / weight_sum) - vel_z :
                   Fg_dt_m2_r * dz;
         }
         __syncthreads();
-        for (int j = N_ELEMENTS - 1; j > elements_to_cache - 1; j--) {
-            offsets[j] += blockDim.x;
-        }
+
     }
 
     vel_x += vx;
