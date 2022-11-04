@@ -10,7 +10,6 @@ THREADS_PER_BLOCK=128
 RED_THREADS=4096
 RED_THREADS_PER_BLOCK=128
 WRITE_INTESITY=20
-SHARED_MEMORY=0
 
 SAMPLE_INPUT=../sampledata/sampleInput.h5
 SAMPLE_OUTPUT=../sampledata/sampleOutput.h5
@@ -35,10 +34,10 @@ clean:
 	rm -f *.o nbody
 
 run:
-	./nbody ${N} ${DT} ${STEPS} ${THREADS_PER_BLOCK} ${WRITE_INTESITY} ${RED_THREADS} ${RED_THREADS_PER_BLOCK} ${SHARED_MEMORY} $(SAMPLE_INPUT) $(OUTPUT)
+	./nbody ${N} ${DT} ${STEPS} ${THREADS_PER_BLOCK} ${WRITE_INTESITY} ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
 
 check_output:
-	./nbody 4096 0.01f 2500 ${THREADS_PER_BLOCK} 50 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} ${SHARED_MEMORY} $(SAMPLE_INPUT) $(OUTPUT)
+	./nbody 4096 0.01f 2500 ${THREADS_PER_BLOCK} 50 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
 	-h5diff -v2 -p 0.00001 $(SAMPLE_OUTPUT) $(OUTPUT) /pos_x_final
 	-h5diff -v2 -p 0.00001 $(SAMPLE_OUTPUT) $(OUTPUT) /pos_y_final
 	-h5diff -v2 -p 0.00001 $(SAMPLE_OUTPUT) $(OUTPUT) /pos_z_final
@@ -63,7 +62,7 @@ check_output:
 	-h5diff -v2 -p 0.00001 $(SAMPLE_OUTPUT) $(OUTPUT) /com_w
 
 check_com:
-	./nbody 10 0.01f 10000 ${THREADS_PER_BLOCK} 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} ${SHARED_MEMORY} $(SAMPLE_INPUT) $(OUTPUT)
+	./nbody 10 0.01f 10000 ${THREADS_PER_BLOCK} 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} $(SAMPLE_INPUT) $(OUTPUT)
 
 
 PROFILE=/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc_2_11_3-x64/ncu --force-overwrite \
@@ -92,8 +91,6 @@ PROFILE=/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc
 		--apply-rules yes \
 		--check-exit-code yes
 
-profile_no_sm:
-	$(PROFILE) --export profile_out ./nbody 110592  ${DT} 1 1024 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} 0 ${LONG_INPUT} ${LONG_OUTPUT}
+profile:
+	$(PROFILE) --export profile_out ./nbody 110592  ${DT} 1 1024 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} ${LONG_INPUT} ${LONG_OUTPUT}
 
-profile_with_sm:
-	$(PROFILE) --export profile_out ./nbody 110592  ${DT} 1 1024 0 ${RED_THREADS} ${RED_THREADS_PER_BLOCK} ${SHARED_MEMORY} ${LONG_INPUT} ${LONG_OUTPUT}
