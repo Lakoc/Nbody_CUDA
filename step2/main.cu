@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
     dim3 dimBlock(thr_blc);
     dim3 dimGrid(simulationGrid);
     size_t sharedMemory = thr_blc * sizeof(float) * N_ELEMENTS;
-//    size_t sharedMemory = 0;
+
     gettimeofday(&t1, 0);
 
     for (int s = 0; s < steps; s++) {

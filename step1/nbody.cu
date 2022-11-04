@@ -24,6 +24,9 @@ __global__ void calculate_velocity(t_particles p_curr,
                                    int N,
                                    float dt) {
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
+    if (global_id >= N){
+        return;
+    }
     float pos_x = p_curr.pos_x[global_id];
     float pos_y = p_curr.pos_y[global_id];
     float pos_z = p_curr.pos_z[global_id];

@@ -21,6 +21,9 @@
  */
 __global__ void calculate_gravitation_velocity(t_particles p, t_velocities tmp_vel, int N, float dt) {
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
+    if (global_id >= N){
+        return;
+    }
     float pos_x = p.pos_x[global_id];
     float pos_y = p.pos_y[global_id];
     float pos_z = p.pos_z[global_id];
