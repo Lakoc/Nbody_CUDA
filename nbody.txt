@@ -34,28 +34,12 @@ Tedy zbylé dva bloky musí čekat, až budou spočteny některé dva bloky, aby
 Krok 1: optimalizace kódu
 =====================
 Došlo ke zrychlení?
-Time: 0.007844 s
-Time: 0.008630 s
-Time: 0.009406 s
-Time: 0.010187 s
-Time: 0.010963 s
-Time: 0.011747 s
-Time: 0.012527 s
-Time: 0.013305 s
-Time: 0.014088 s
-Time: 0.014864 s
-Time: 0.015647 s
-Time: 0.018389 s
-Time: 0.029361 s
-Time: 0.030639 s
-Time: 0.032021 s
-Time: 0.033041 s
 
 Popište hlavní důvody:
 
-Ano, došlo ke zrychlení cca 40% oproti původní verzi, jelikož odpadla synchronizace mezi kernely, taktéž došlo k lepšímu znovupoužití načtených hodnot v registrech.
-Odpadla nutnost počítat veličiny jako vzdálenost na ose x,y, ... dvakrát.
-Částice do sebe naražejí, nebo na sebe působí gravitační sílu, došlo tedy k omezení zbytečného kódu, kdy probíhal výpočet avšak do vektoru rychlosti byla přiřazena 0.
+Ano, došlo ke zrychlení cca 40% oproti původní verzi, jelikož odpadla nutnost synchronizace mezi kernely, taktéž došlo k lepšímu znovupoužití načtených hodnot v registrech.
+Zároveň není nutné počítat veličiny jako vzdálenost na ose x,y, ... dvakrát.
+Částice do sebe naražejí, nebo na sebe působí gravitační sílu - došlo tedy k omezení zbytečného kódu, kdy probíhal výpočet, avšak do vektoru rychlosti byla přiřazena 0.
 Nyní je v obou případech přičtena nová rychlost a došlo k jistému snížení divergence vláken při zapsání výsledků (2x2->2).
 
 Krok 2: sdílená paměť
