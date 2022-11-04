@@ -47,13 +47,13 @@ __global__ void calculate_velocity(t_particles p_curr,
     float vel_y = p_curr.vel_y[global_id];
     float vel_z = p_curr.vel_z[global_id];
 
-    unsigned in_mem_pos_x = elements_to_cache < POS_X;
-    unsigned in_mem_pos_y = elements_to_cache < POS_Y;
-    unsigned in_mem_pos_z = elements_to_cache < POS_Z;
-    unsigned in_mem_vel_x = elements_to_cache < VEL_X;
-    unsigned in_mem_vel_y = elements_to_cache < VEL_Y;
-    unsigned in_mem_vel_z = elements_to_cache < VEL_Z;
-    unsigned in_mem_weight = elements_to_cache < WEIGHT;
+    unsigned in_mem_pos_x = elements_to_cache <= POS_X;
+    unsigned in_mem_pos_y = elements_to_cache <= POS_Y;
+    unsigned in_mem_pos_z = elements_to_cache <= POS_Z;
+    unsigned in_mem_vel_x = elements_to_cache <= VEL_X;
+    unsigned in_mem_vel_y = elements_to_cache <= VEL_Y;
+    unsigned in_mem_vel_z = elements_to_cache <= VEL_Z;
+    unsigned in_mem_weight = elements_to_cache <= WEIGHT;
 
     float *mem_pos_x = !in_mem_pos_x ? &shared[POS_X * blockDim.x] : p_curr.pos_x;
     float *mem_pos_y = !in_mem_pos_y ? &shared[POS_Y * blockDim.x] : p_curr.pos_y;

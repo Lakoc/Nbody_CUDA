@@ -16,6 +16,20 @@
 #include "h5Helper.h"
 
 /**
+ * Aux function to log last cuda err
+ * Author: Robert Crovella, talonmies  Source: https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
+ */
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+    if (code != cudaSuccess)
+    {
+        fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+        if (abort) exit(code);
+    }
+}
+
+/**
  * Main rotine
  * @param argc
  * @param argv
@@ -164,6 +178,7 @@ int main(int argc, char **argv) {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         calculate_velocity<<<dimGrid, dimBlock, sharedMemory>>>(particles_gpu_curr, particles_gpu_next, N, dt);
+
         std::swap(particles_gpu_curr, particles_gpu_next);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,6 +203,7 @@ int main(int argc, char **argv) {
     // Approximate simulation wall time
     double t = (1000000.0 * (t2.tv_sec - t1.tv_sec) + t2.tv_usec - t1.tv_usec) / 1000000.0;
     printf("Time: %f s\n", t);
+    gpuErrchk( cudaPeekAtLastError() );
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
