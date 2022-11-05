@@ -69,14 +69,11 @@ int main(int argc, char **argv) {
     //                            FILL IN: CPU side memory allocation (step 0)                                          //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    size_t particle_arr_size = N * sizeof(float);
-    particles_cpu.pos_x = static_cast<float *>(malloc(particle_arr_size));
-    particles_cpu.pos_y = static_cast<float *>(malloc(particle_arr_size));
-    particles_cpu.pos_z = static_cast<float *>(malloc(particle_arr_size));
-    particles_cpu.vel_x = static_cast<float *>(malloc(particle_arr_size));
-    particles_cpu.vel_y = static_cast<float *>(malloc(particle_arr_size));
-    particles_cpu.vel_z = static_cast<float *>(malloc(particle_arr_size));
-    particles_cpu.weight = static_cast<float *>(malloc(particle_arr_size));
+    size_t particles_pos_arr_size = N * sizeof(float4);
+    size_t particles_vel_arr_size = N * sizeof(float3);
+
+    particles_cpu.pos = static_cast<float4 *>(malloc(particles_pos_arr_size));
+    particles_cpu.vel = static_cast<float3 *>(malloc(particles_vel_arr_size));
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                              FILL IN: memory layout descriptor (step 0)                                          //
@@ -89,15 +86,15 @@ int main(int argc, char **argv) {
      *                      in floats, not bytes        not bytes
     */
     MemDesc md(
-            particles_cpu.pos_x, 1, 0,              // Postition in X
-            particles_cpu.pos_y, 1, 0,              // Postition in Y
-            particles_cpu.pos_z, 1, 0,              // Postition in Z
-            particles_cpu.vel_x, 1, 0,              // Velocity in X
-            particles_cpu.vel_y, 1, 0,              // Velocity in Y
-            particles_cpu.vel_z, 1, 0,              // Velocity in Z
-            particles_cpu.weight, 1, 0,              // Weight
+            &particles_cpu.pos->x, 4, 0,              // Postition in X
+            &particles_cpu.pos->y, 4, 0,              // Postition in Y
+            &particles_cpu.pos->z, 4, 0,              // Postition in Z
+            &particles_cpu.vel->x, 3, 0,              // Velocity in X
+            &particles_cpu.vel->y, 3, 0,              // Velocity in Y
+            &particles_cpu.vel->z, 3, 0,              // Velocity in Z
+            &particles_cpu.pos->w, 4, 0,              // Weight
             N,                                                                  // Number of particles
-            recordsNum);                                                        // Number of records in output file
+            recordsNum);                                                      // Number of records in output file
 
     // Initialisation of helper class and loading of input data
     H5Helper h5Helper(argv[8], argv[9], md);
@@ -118,32 +115,22 @@ int main(int argc, char **argv) {
     //                                  FILL IN: GPU side memory allocation (step 0)                                    //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    cudaMalloc<float>(&particles_gpu.pos_x, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.pos_y, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.pos_z, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.vel_x, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.vel_y, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.vel_z, particle_arr_size);
-    cudaMalloc<float>(&particles_gpu.weight, particle_arr_size);
+    cudaMalloc<float4>(&particles_gpu.pos, particles_pos_arr_size);
+    cudaMalloc<float3>(&particles_gpu.vel, particles_vel_arr_size);
+
 
     t_velocities velocities_gpu;
 
-    cudaMalloc<float>(&velocities_gpu.x, particle_arr_size);
-    cudaMalloc<float>(&velocities_gpu.y, particle_arr_size);
-    cudaMalloc<float>(&velocities_gpu.z, particle_arr_size);
+    cudaMalloc<float3>(&velocities_gpu.vel, particles_vel_arr_size);
+    cudaMemset(velocities_gpu.vel, 0, particles_vel_arr_size);
+
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                       FILL IN: memory transfers (step 0)                                         //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    cudaMemcpy(particles_gpu.pos_x, particles_cpu.pos_x, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.pos_y, particles_cpu.pos_y, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.pos_z, particles_cpu.pos_z, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.vel_x, particles_cpu.vel_x, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.vel_y, particles_cpu.vel_y, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.vel_z, particles_cpu.vel_z, particle_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.weight, particles_cpu.weight, particle_arr_size, cudaMemcpyHostToDevice);
-
+    cudaMemcpy(particles_gpu.pos, particles_cpu.pos, particles_pos_arr_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(particles_gpu.vel, particles_cpu.vel, particles_vel_arr_size, cudaMemcpyHostToDevice);
 
     dim3 dimBlock(thr_blc);
     dim3 dimGrid(simulationGrid);
@@ -188,12 +175,8 @@ int main(int argc, char **argv) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     float4 comOnGPU;
 
-    cudaMemcpy(particles_cpu.pos_x, particles_gpu.pos_x, particle_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.pos_y, particles_gpu.pos_y, particle_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.pos_z, particles_gpu.pos_z, particle_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.vel_x, particles_gpu.vel_x, particle_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.vel_y, particles_gpu.vel_y, particle_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.vel_z, particles_gpu.vel_z, particle_arr_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(particles_cpu.pos, particles_gpu.pos, particles_pos_arr_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(particles_cpu.vel, particles_gpu.vel, particles_vel_arr_size, cudaMemcpyDeviceToHost);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                        FILL IN: memory transfers for center-of-mass (step 3.1, step 3.2)                         //
