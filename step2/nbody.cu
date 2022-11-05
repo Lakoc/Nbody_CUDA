@@ -38,7 +38,6 @@ __global__ void calculate_velocity(t_particles p_curr,
     int elements_to_cache = (int) (dynamic_smem_size() / (blockDim.x * sizeof(float)));
 
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
-    if (global_id >= N) return;
 
     float pos_x = p_curr.pos_x[global_id];
     float pos_y = p_curr.pos_y[global_id];
@@ -85,7 +84,6 @@ __global__ void calculate_velocity(t_particles p_curr,
         __syncthreads();
 
         for (int i = 0; i < blockDim.x; i++) {
-
             dx = mem_pos_x[block_offset * in_mem_pos_x + i] - pos_x;
             dy = mem_pos_y[block_offset * in_mem_pos_y + i] - pos_y;
             dz = mem_pos_z[block_offset * in_mem_pos_z + i] - pos_z;
@@ -95,13 +93,12 @@ __global__ void calculate_velocity(t_particles p_curr,
             colliding = r > 0.0f && r <= COLLISION_DISTANCE;
 
 
-            p2_weight = block_offset + i < N ? mem_weight[block_offset * in_mem_weight + i] : 0.0f;
+            p2_weight = block_offset + i < N && global_id < N ? mem_weight[block_offset * in_mem_weight + i] : 0.0f;
             weight_difference = p1_weight - p2_weight;
             weight_sum = p1_weight + p2_weight;
             double_m2 = p2_weight * 2.0f;
 
             Fg_dt_m2_r = G * dt / r3 * p2_weight;
-
 
             vx += colliding ?
                   ((vel_x * weight_difference + double_m2 * mem_vel_x[block_offset * in_mem_vel_x + i]) / weight_sum) -
