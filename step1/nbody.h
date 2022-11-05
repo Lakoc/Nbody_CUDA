@@ -27,13 +27,8 @@ typedef struct {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                 FILL IN: Particle data structure optimal for the use on GPU (step 0)                             //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    float *pos_x;
-    float *pos_y;
-    float *pos_z;
-    float *vel_x;
-    float *vel_y;
-    float *vel_z;
-    float *weight;
+    float4 *pos;
+    float3 *vel;
 } t_particles;
 
 
@@ -45,9 +40,9 @@ typedef struct {
  * @param dt      - Size of the time step
  */
 __global__ void calculate_velocity(t_particles p_curr,
-                                               t_particles p_next,
-                                               int N,
-                                               float dt);
+                                   t_particles p_next,
+                                   int N,
+                                   float dt);
 
 
 __global__ void centerOfMass(t_particles p,
