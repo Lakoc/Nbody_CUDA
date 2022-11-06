@@ -40,11 +40,15 @@ __global__ void calculate_velocity(t_particles p_curr,
 
     bool is_shared_pos = elements_to_cache >= POS_ELEMENTS;
     bool is_shared_vel = elements_to_cache >= POS_ELEMENTS + VEL_ELEMENTS;
-
+    bool is_mem_pos = !is_shared_pos;
+    bool is_mem_vel = !is_shared_vel;
 
     auto *shared_pos = reinterpret_cast<float4 *>(is_shared_pos ? shared : nullptr);
     auto *shared_vel = reinterpret_cast<float3 *>(is_shared_vel ? &shared[blockDim.x * POS_ELEMENTS] : nullptr);
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
+
+    float4 *pos_mem = is_shared_pos? shared_pos : p_curr.pos;
+    float3 *vel_mem = is_shared_vel? shared_vel : p_curr.vel;
 
     float4 pos_p1 = p_curr.pos[global_id];
     float3 vel_p1 = p_curr.vel[global_id];
@@ -67,33 +71,32 @@ __global__ void calculate_velocity(t_particles p_curr,
             shared_vel[threadIdx.x] = p_curr.vel[load_index];
         }
         __syncthreads();
-        if (global_id < N) {
-            for (int i = 0; i < blockDim.x; i++) {
-                pos_p2 = is_shared_pos ? shared_pos[i] : p_curr.pos[block_offset + i];
-                vel_p2 = is_shared_vel ? shared_vel[i] : p_curr.vel[block_offset + i];
-                dx = pos_p2.x - pos_p1.x;
-                dy = pos_p2.y - pos_p1.y;
-                dz = pos_p2.z - pos_p1.z;
-                r = sqrt(dx * dx + dy * dy + dz * dz);
-                r3 = r * r * r + FLT_MIN;
-                colliding = r > 0.0f && r <= COLLISION_DISTANCE;
-                pos_p2.w = block_offset + i < N ? pos_p2.w : 0.0f;
-                weight_difference = pos_p1.w - pos_p2.w;
-                weight_sum = pos_p1.w + pos_p2.w;
-                double_m2 = pos_p2.w * 2.0f;
+        for (int i = 0; i < blockDim.x; i++) {
+            pos_p2 = pos_mem[block_offset *is_mem_pos + i];
+            vel_p2 = vel_mem[block_offset *is_mem_vel + i];
+            dx = pos_p2.x - pos_p1.x;
+            dy = pos_p2.y - pos_p1.y;
+            dz = pos_p2.z - pos_p1.z;
+            r = sqrt(dx * dx + dy * dy + dz * dz);
+            r3 = r * r * r + FLT_MIN;
+            colliding = r > 0.0f && r <= COLLISION_DISTANCE;
+            pos_p2.w = block_offset + i < N && global_id < N ? pos_p2.w : 0.0f;
+            weight_difference = pos_p1.w - pos_p2.w;
+            weight_sum = pos_p1.w + pos_p2.w;
+            double_m2 = pos_p2.w * 2.0f;
 
-                Fg_dt_m2_r = G * dt / r3 * pos_p2.w;
+            Fg_dt_m2_r = G * dt / r3 * pos_p2.w;
 
-                v_temp.x += colliding ? ((vel_p1.x * weight_difference + double_m2 * vel_p2.x) / weight_sum) - vel_p1.x
-                                      :
-                            Fg_dt_m2_r * dx;
-                v_temp.y += colliding ? ((vel_p1.y * weight_difference + double_m2 * vel_p2.y) / weight_sum) - vel_p1.y
-                                      :
-                            Fg_dt_m2_r * dy;
-                v_temp.z += colliding ? ((vel_p1.z * weight_difference + double_m2 * vel_p2.z) / weight_sum) - vel_p1.z
-                                      :
-                            Fg_dt_m2_r * dz;
-            }
+            v_temp.x += colliding ? ((vel_p1.x * weight_difference + double_m2 * vel_p2.x) / weight_sum) - vel_p1.x
+                                  :
+                        Fg_dt_m2_r * dx;
+            v_temp.y += colliding ? ((vel_p1.y * weight_difference + double_m2 * vel_p2.y) / weight_sum) - vel_p1.y
+                                  :
+                        Fg_dt_m2_r * dy;
+            v_temp.z += colliding ? ((vel_p1.z * weight_difference + double_m2 * vel_p2.z) / weight_sum) - vel_p1.z
+                                  :
+                        Fg_dt_m2_r * dz;
+
         }
         __syncthreads();
     }
