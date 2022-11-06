@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //              FILL IN: invocation of center-of-mass kernel (step 3.1, step 3.2, step 4)                           //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    cudaDeviceSynchronize();
+    gpuErrCheck(cudaDeviceSynchronize())
     gpuErrCheck(cudaPeekAtLastError())
 
     gettimeofday(&t2, 0);
@@ -220,6 +220,14 @@ int main(int argc, char **argv) {
     // Writing final values to the file
     h5Helper.writeComFinal(comOnGPU.x, comOnGPU.y, comOnGPU.z, comOnGPU.w);
     h5Helper.writeParticleDataFinal();
+
+    free(particles_cpu.pos);
+    free(particles_cpu.vel);
+
+    cudaFree(particles_gpu_curr.pos);
+    cudaFree(particles_gpu_curr.vel);
+    cudaFree(particles_gpu_next.pos);
+    cudaFree(particles_gpu_next.vel);
 
     return 0;
 }// end of main
