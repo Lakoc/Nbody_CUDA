@@ -16,6 +16,19 @@
 #include "h5Helper.h"
 
 /**
+ * Aux macro and function to log last cuda err
+ * Author: Robert Crovella, talonmies  Source: https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
+ */
+#define gpuErrCheck(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true) {
+    if (code != cudaSuccess) {
+        fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+        if (abort) exit(code);
+    }
+}
+
+/**
  * Main rotine
  * @param argc
  * @param argv
@@ -115,8 +128,8 @@ int main(int argc, char **argv) {
     //                                  FILL IN: GPU side memory allocation (step 0)                                    //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    cudaMalloc<float4>(&particles_gpu.pos, particles_pos_arr_size);
-    cudaMalloc<float3>(&particles_gpu.vel, particles_vel_arr_size);
+    gpuErrCheck(cudaMalloc<float4>(&particles_gpu.pos, particles_pos_arr_size))
+    gpuErrCheck(cudaMalloc<float3>(&particles_gpu.vel, particles_vel_arr_size))
 
 
     t_velocities velocities_gpu;
@@ -130,8 +143,8 @@ int main(int argc, char **argv) {
     //                                       FILL IN: memory transfers (step 0)                                         //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    cudaMemcpy(particles_gpu.pos, particles_cpu.pos, particles_pos_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu.vel, particles_cpu.vel, particles_vel_arr_size, cudaMemcpyHostToDevice);
+    gpuErrCheck(cudaMemcpy(particles_gpu.pos, particles_cpu.pos, particles_pos_arr_size, cudaMemcpyHostToDevice))
+    gpuErrCheck(cudaMemcpy(particles_gpu.vel, particles_cpu.vel, particles_vel_arr_size, cudaMemcpyHostToDevice))
 
     dim3 dimBlock(thr_blc);
     dim3 dimGrid(simulationGrid);
@@ -163,6 +176,7 @@ int main(int argc, char **argv) {
     //              FILL IN: invocation of center-of-mass kernel (step 3.1, step 3.2, step 4)                           //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     cudaDeviceSynchronize();
+    gpuErrCheck(cudaPeekAtLastError())
 
     gettimeofday(&t2, 0);
 
@@ -176,8 +190,8 @@ int main(int argc, char **argv) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     float4 comOnGPU;
 
-    cudaMemcpy(particles_cpu.pos, particles_gpu.pos, particles_pos_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.vel, particles_gpu.vel, particles_vel_arr_size, cudaMemcpyDeviceToHost);
+    gpuErrCheck(cudaMemcpy(particles_cpu.pos, particles_gpu.pos, particles_pos_arr_size, cudaMemcpyDeviceToHost))
+    gpuErrCheck(cudaMemcpy(particles_cpu.vel, particles_gpu.vel, particles_vel_arr_size, cudaMemcpyDeviceToHost))
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                        FILL IN: memory transfers for center-of-mass (step 3.1, step 3.2)                         //
@@ -205,6 +219,7 @@ int main(int argc, char **argv) {
     // Memory cleanup
     free(particles_cpu.pos);
     free(particles_cpu.vel);
+
     cudaFree(particles_gpu.pos);
     cudaFree(particles_gpu.vel);
     cudaFree(velocities_gpu.vel);

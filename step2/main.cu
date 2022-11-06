@@ -16,10 +16,10 @@
 #include "h5Helper.h"
 
 /**
- * Aux function to log last cuda err
+ * Aux macro and function to log last cuda err
  * Author: Robert Crovella, talonmies  Source: https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
  */
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+#define gpuErrCheck(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true) {
     if (code != cudaSuccess) {
@@ -129,11 +129,11 @@ int main(int argc, char **argv) {
     //                                  FILL IN: GPU side memory allocation (step 0)                                    //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    cudaMalloc<float4>(&particles_gpu_curr.pos, particles_pos_arr_size);
-    cudaMalloc<float3>(&particles_gpu_curr.vel, particles_vel_arr_size);
+    gpuErrCheck(cudaMalloc<float4>(&particles_gpu_curr.pos, particles_pos_arr_size))
+    gpuErrCheck(cudaMalloc<float3>(&particles_gpu_curr.vel, particles_vel_arr_size))
 
-    cudaMalloc<float4>(&particles_gpu_next.pos, particles_pos_arr_size);
-    cudaMalloc<float3>(&particles_gpu_next.vel, particles_vel_arr_size);
+    gpuErrCheck(cudaMalloc<float4>(&particles_gpu_next.pos, particles_pos_arr_size))
+    gpuErrCheck(cudaMalloc<float3>(&particles_gpu_next.vel, particles_vel_arr_size))
 
 
 
@@ -141,13 +141,16 @@ int main(int argc, char **argv) {
     //                                       FILL IN: memory transfers (step 0)                                         //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    cudaMemcpy(particles_gpu_curr.pos, particles_cpu.pos, particles_pos_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu_curr.vel, particles_cpu.vel, particles_vel_arr_size, cudaMemcpyHostToDevice);
+    gpuErrCheck(cudaMemcpy(particles_gpu_curr.pos, particles_cpu.pos, particles_pos_arr_size, cudaMemcpyHostToDevice))
+    gpuErrCheck(cudaMemcpy(particles_gpu_curr.vel, particles_cpu.vel, particles_vel_arr_size, cudaMemcpyHostToDevice))
 
-    cudaMemcpy(particles_gpu_next.pos, particles_cpu.pos, particles_vel_arr_size, cudaMemcpyHostToDevice);
+    // There is no need to copy velocities to next state of particles, they will never be accessed until calculation of next step
+    gpuErrCheck(cudaMemcpy(particles_gpu_next.pos, particles_cpu.pos, particles_vel_arr_size, cudaMemcpyHostToDevice))
 
     dim3 dimBlock(thr_blc);
     dim3 dimGrid(simulationGrid);
+
+    // Calculate size of memory for block
     size_t sharedMemory = thr_blc * (sizeof(float4) + sizeof(float3));
 
     gettimeofday(&t1, 0);
@@ -177,13 +180,13 @@ int main(int argc, char **argv) {
     //              FILL IN: invocation of center-of-mass kernel (step 3.1, step 3.2, step 4)                           //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     cudaDeviceSynchronize();
+    gpuErrCheck(cudaPeekAtLastError())
 
     gettimeofday(&t2, 0);
 
     // Approximate simulation wall time
     double t = (1000000.0 * (t2.tv_sec - t1.tv_sec) + t2.tv_usec - t1.tv_usec) / 1000000.0;
     printf("Time: %f s\n", t);
-    gpuErrchk(cudaPeekAtLastError());
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,8 +195,8 @@ int main(int argc, char **argv) {
     float4 comOnGPU;
 
 
-    cudaMemcpy(particles_cpu.pos, particles_gpu_curr.pos, particles_pos_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.vel, particles_gpu_curr.vel, particles_vel_arr_size, cudaMemcpyDeviceToHost);
+    gpuErrCheck(cudaMemcpy(particles_cpu.pos, particles_gpu_curr.pos, particles_pos_arr_size, cudaMemcpyDeviceToHost))
+    gpuErrCheck(cudaMemcpy(particles_cpu.vel, particles_gpu_curr.vel, particles_vel_arr_size, cudaMemcpyDeviceToHost))
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                        FILL IN: memory transfers for center-of-mass (step 3.1, step 3.2)                         //

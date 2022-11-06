@@ -31,6 +31,7 @@ typedef struct {
     float3 *vel;
 } t_particles;
 
+// Offsets
 #define POS_ELEMENTS 4
 #define VEL_ELEMENTS 3
 
