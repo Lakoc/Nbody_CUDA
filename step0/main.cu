@@ -123,6 +123,8 @@ int main(int argc, char **argv) {
 
     cudaMalloc<float3>(&velocities_gpu.vel, particles_vel_arr_size);
 
+    // There is no need to set values to 0, values are initialized in calculate_gravitation_velocity kernel
+
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                       FILL IN: memory transfers (step 0)                                         //
@@ -199,6 +201,13 @@ int main(int argc, char **argv) {
     // Writing final values to the file
     h5Helper.writeComFinal(comOnGPU.x, comOnGPU.y, comOnGPU.z, comOnGPU.w);
     h5Helper.writeParticleDataFinal();
+
+    // Memory cleanup
+    free(particles_cpu.pos);
+    free(particles_cpu.vel);
+    cudaFree(particles_gpu.pos);
+    cudaFree(particles_gpu.vel);
+    cudaFree(velocities_gpu.vel);
 
     return 0;
 }// end of main
