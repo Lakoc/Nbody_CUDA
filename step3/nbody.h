@@ -27,23 +27,12 @@ typedef struct {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                 FILL IN: Particle data structure optimal for the use on GPU (step 0)                             //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    float *pos_x;
-    float *pos_y;
-    float *pos_z;
-    float *vel_x;
-    float *vel_y;
-    float *vel_z;
-    float *weight;
+    float4 *pos;
+    float3 *vel;
 } t_particles;
 
-#define POS_X 0
-#define POS_Y 1
-#define POS_Z 2
-#define VEL_X 3
-#define VEL_Y 4
-#define VEL_Z 5
-#define WEIGHT 6
-#define N_ELEMENTS 7
+#define POS_ELEMENTS 4
+#define VEL_ELEMENTS 3
 
 /**
  * CUDA kernel to calculate velocities
