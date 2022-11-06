@@ -122,7 +122,6 @@ int main(int argc, char **argv) {
     t_velocities velocities_gpu;
 
     cudaMalloc<float3>(&velocities_gpu.vel, particles_vel_arr_size);
-    cudaMemset(velocities_gpu.vel, 0, particles_vel_arr_size);
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

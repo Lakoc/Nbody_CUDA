@@ -1,8 +1,0 @@
-nbody.cu(38): warning #177-D: variable "pitch" was declared but never referenced
-
-main.cu(218): warning #549-D: variable "comOnGPU" is used before its value is set
-
-main.cu(218): warning #549-D: variable "comOnGPU" is used before its value is set
-
-WARNING: You are using pip version 22.0.4; however, version 22.3 is available.
-You should consider upgrading via the '/home/lakoc/PCG_NBODY/tests/py-test-env/bin/python3 -m pip install --upgrade pip' command.
