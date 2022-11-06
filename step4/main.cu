@@ -19,7 +19,7 @@
  * Aux function to log last cuda err
  * Author: Robert Crovella, talonmies  Source: https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
  */
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+#define gpuErrCheck(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true) {
     if (code != cudaSuccess) {
@@ -87,8 +87,8 @@ int main(int argc, char **argv) {
     size_t particles_vel_arr_size = N * sizeof(float3);
 
     // Allocation of pinned, pageable memory at host
-    gpuErrchk(cudaMallocHost(&particles_cpu.pos, particles_pos_arr_size));
-    gpuErrchk(cudaMallocHost(&particles_cpu.vel, particles_vel_arr_size));
+    gpuErrCheck(cudaMallocHost(&particles_cpu.pos, particles_pos_arr_size));
+    gpuErrCheck(cudaMallocHost(&particles_cpu.vel, particles_vel_arr_size));
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -133,24 +133,21 @@ int main(int argc, char **argv) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Allocation of current and next particles data
-    gpuErrchk(cudaMalloc<float4>(&particles_gpu_curr.pos, particles_pos_arr_size))
-    gpuErrchk(cudaMalloc<float3>(&particles_gpu_curr.vel, particles_vel_arr_size))
+    gpuErrCheck(cudaMalloc<float4>(&particles_gpu_curr.pos, particles_pos_arr_size))
+    gpuErrCheck(cudaMalloc<float3>(&particles_gpu_curr.vel, particles_vel_arr_size))
 
-    gpuErrchk(cudaMalloc<float4>(&particles_gpu_next.pos, particles_pos_arr_size))
-    gpuErrchk(cudaMalloc<float3>(&particles_gpu_next.vel, particles_vel_arr_size))
-
-
-
+    gpuErrCheck(cudaMalloc<float4>(&particles_gpu_next.pos, particles_pos_arr_size))
+    gpuErrCheck(cudaMalloc<float3>(&particles_gpu_next.vel, particles_vel_arr_size))
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                       FILL IN: memory transfers (step 0)                                         //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Copy input data to gpu memory
-    gpuErrchk(cudaMemcpy(particles_gpu_curr.pos, particles_cpu.pos, particles_pos_arr_size, cudaMemcpyHostToDevice))
-    gpuErrchk(cudaMemcpy(particles_gpu_curr.vel, particles_cpu.vel, particles_vel_arr_size, cudaMemcpyHostToDevice))
+    gpuErrCheck(cudaMemcpy(particles_gpu_curr.pos, particles_cpu.pos, particles_pos_arr_size, cudaMemcpyHostToDevice))
+    gpuErrCheck(cudaMemcpy(particles_gpu_curr.vel, particles_cpu.vel, particles_vel_arr_size, cudaMemcpyHostToDevice))
 
-    gpuErrchk(cudaMemcpy(particles_gpu_next.pos, particles_cpu.pos, particles_vel_arr_size, cudaMemcpyHostToDevice))
-    gpuErrchk(cudaMemcpy(particles_gpu_next.vel, particles_cpu.vel, particles_vel_arr_size, cudaMemcpyHostToDevice))
+    gpuErrCheck(cudaMemcpy(particles_gpu_next.pos, particles_cpu.pos, particles_vel_arr_size, cudaMemcpyHostToDevice))
+    // There is no need to copy velocities to next state of particles, they will never be accessed until calculation of next step
 
 
     dim3 dimBlock(thr_blc);
@@ -162,14 +159,19 @@ int main(int argc, char **argv) {
 
     float4 *comGPU;
     int *lock;
-    gpuErrchk(cudaMalloc(&comGPU, sizeof(float4)))
-    gpuErrchk(cudaMemset(comGPU, 0, sizeof(float4)))
-    gpuErrchk(cudaMalloc(&lock, sizeof(int)))
-    gpuErrchk(cudaMemset(lock, 0, sizeof(int)))
+
+    // Allocate memory for center of mass calculation
+    gpuErrCheck(cudaMalloc(&comGPU, sizeof(float4)))
+    gpuErrCheck(cudaMemset(comGPU, 0, sizeof(float4)))
+    gpuErrCheck(cudaMalloc(&lock, sizeof(int)))
+    gpuErrCheck(cudaMemset(lock, 0, sizeof(int)))
+
+    // Calculate share memory size for reduction of center of mass
     size_t cmo_shared_size = thr_blc * sizeof(float) * 4;
 
+    // Allocate pinned memory for center of mass computed in loop
     float4 *comCPU;
-    gpuErrchk(cudaMallocHost(&comCPU, sizeof(float4)))
+    gpuErrCheck(cudaMallocHost(&comCPU, sizeof(float4)))
 
     gettimeofday(&t1, 0);
 
@@ -179,13 +181,13 @@ int main(int argc, char **argv) {
     cudaStream_t velocity_stream, com_stream;
     cudaEvent_t com_updated, com_copied, particles_updated, particles_copied;
 
-    gpuErrchk(cudaStreamCreate(&velocity_stream))
-    gpuErrchk(cudaStreamCreate(&com_stream))
+    gpuErrCheck(cudaStreamCreate(&velocity_stream))
+    gpuErrCheck(cudaStreamCreate(&com_stream))
 
-    gpuErrchk(cudaEventCreate(&com_updated))
-    gpuErrchk(cudaEventCreate(&com_copied))
-    gpuErrchk(cudaEventCreate(&particles_updated))
-    gpuErrchk(cudaEventCreate(&particles_copied))
+    gpuErrCheck(cudaEventCreate(&com_updated))
+    gpuErrCheck(cudaEventCreate(&com_copied))
+    gpuErrCheck(cudaEventCreate(&particles_updated))
+    gpuErrCheck(cudaEventCreate(&particles_copied))
 
 
     // Replacement of std::swap with indexing mod step -> synchronization over epochs would be necessary with std::swap
@@ -196,21 +198,24 @@ int main(int argc, char **argv) {
         //                                       FILL IN: kernels invocation (step 0)                                     //
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Calculation of t[n+1] particle_data has to wait for t[n] center of mass calculation (3.5.1. IV)
-        gpuErrchk(cudaStreamWaitEvent(velocity_stream, com_updated))
+        gpuErrCheck(cudaStreamWaitEvent(velocity_stream, com_updated))
         calculate_velocity<<<dimGrid, dimBlock, sharedMemory, velocity_stream>>>(*particles[s % 2],
                                                                                  *particles[(s + 1) % 2], N, dt);
 
+        // Event to enable writing particle_data to output file (3.5.1. III)
+        gpuErrCheck(cudaEventRecord(particles_updated, velocity_stream))
+
         // Calculation of t[n] center of mass has to wait for t[n-1] particle_data calculation (3.5.1. V)
-        gpuErrchk(cudaStreamWaitEvent(com_stream, particles_updated))
+        gpuErrCheck(cudaStreamWaitEvent(com_stream, particles_updated))
 
         // Clear center of mass data from last epoch
-        gpuErrchk(cudaMemsetAsync(comGPU, 0, sizeof(float4), com_stream))
+        gpuErrCheck(cudaMemsetAsync(comGPU, 0, sizeof(float4), com_stream))
         centerOfMass<<<dimGrid, dimBlock, cmo_shared_size, com_stream>>>(*particles[(s) % 2], &comGPU->x, &comGPU->y,
                                                                          &comGPU->z,
                                                                          &comGPU->w, lock, N);
 
         // Event to enable start of particle_data calculation for t[n+1] (3.5.1. IV)
-        gpuErrchk(cudaEventRecord(com_updated, com_stream))
+        gpuErrCheck(cudaEventRecord(com_updated, com_stream))
 
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -223,47 +228,46 @@ int main(int argc, char **argv) {
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // Default synchronization after t[n] particle_data calculation is preserved (3.5.1. III)
-            gpuErrchk(cudaMemcpyAsync(particles_cpu.pos, (*particles[s % 2]).pos, particles_pos_arr_size,
-                                      cudaMemcpyDeviceToHost, velocity_stream))
-            gpuErrchk(cudaMemcpyAsync(particles_cpu.vel, (*particles[s % 2]).vel, particles_vel_arr_size,
-                                      cudaMemcpyDeviceToHost, velocity_stream))
+            gpuErrCheck(cudaMemcpyAsync(particles_cpu.pos, (*particles[s % 2]).pos, particles_pos_arr_size,
+                                        cudaMemcpyDeviceToHost, velocity_stream))
+            gpuErrCheck(cudaMemcpyAsync(particles_cpu.vel, (*particles[s % 2]).vel, particles_vel_arr_size,
+                                        cudaMemcpyDeviceToHost, velocity_stream))
 
             // Event to enable writing particle_data to output file (3.5.1. III)
-            gpuErrchk(cudaEventRecord(particles_copied, velocity_stream))
+            gpuErrCheck(cudaEventRecord(particles_copied, velocity_stream))
 
             // Writing to disk of particle_data t[n] has to wait for t[n-1] particle_data calculation (3.5.1. VI)
-            gpuErrchk(cudaStreamWaitEvent(velocity_stream, particles_updated))
+            gpuErrCheck(cudaStreamWaitEvent(velocity_stream, particles_updated))
 
             // Writing to disk has to wait for copy to finish (3.5.1. VIII)
             // There is no synchronization in following lines, thus copying in parallel with writing to stdout is enabled (3.5.1. VIII)
-            gpuErrchk(cudaEventSynchronize(particles_copied))
+            gpuErrCheck(cudaEventSynchronize(particles_copied))
             h5Helper.writeParticleData(record_num);
 
             // Default synchronization after t[n] center of mass calculation is preserved (3.5.1. VII)
-            gpuErrchk(cudaMemcpyAsync(comCPU, comGPU, sizeof(float4), cudaMemcpyDeviceToHost, com_stream))
+            gpuErrCheck(cudaMemcpyAsync(comCPU, comGPU, sizeof(float4), cudaMemcpyDeviceToHost, com_stream))
 
             // Event to enable writing particle_data to output file (3.5.1. III)
-            gpuErrchk(cudaEventRecord(com_copied, com_stream))
+            gpuErrCheck(cudaEventRecord(com_copied, com_stream))
 
             // Writing to disk has to wait for copy to finish (3.5.1. IX -> derived not directly)
-            gpuErrchk(cudaEventSynchronize(com_copied))
+            gpuErrCheck(cudaEventSynchronize(com_copied))
             h5Helper.writeCom(comCPU->x, comCPU->y, comCPU->z, comCPU->w, record_num);
 
+            // Increment record number
             record_num += 1;
         }
-
-        gpuErrchk(cudaEventRecord(particles_updated, velocity_stream));
     }
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //              FILL IN: invocation of center-of-mass kernel (step 3.1, step 3.2, step 4)                           //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    gpuErrchk(cudaDeviceSynchronize())
+    gpuErrCheck(cudaDeviceSynchronize())
 
-    gpuErrchk(cudaPeekAtLastError())
+    gpuErrCheck(cudaPeekAtLastError())
 
-    gpuErrchk(cudaMemset(comGPU, 0, sizeof(float4)))
+    gpuErrCheck(cudaMemset(comGPU, 0, sizeof(float4)))
 
     centerOfMass<<<dimGrid, dimBlock, cmo_shared_size>>>(particles_gpu_curr, &comGPU->x, &comGPU->y, &comGPU->z,
                                                          &comGPU->w, lock, N);
@@ -281,22 +285,14 @@ int main(int argc, char **argv) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     float4 comOnGPU;
 
-    cudaMemcpy(particles_cpu.pos, particles_gpu_curr.pos, particles_pos_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.vel, particles_gpu_curr.vel, particles_vel_arr_size, cudaMemcpyDeviceToHost);
+    gpuErrCheck(cudaMemcpy(particles_cpu.pos, particles_gpu_curr.pos, particles_pos_arr_size, cudaMemcpyDeviceToHost))
+    gpuErrCheck(cudaMemcpy(particles_cpu.vel, particles_gpu_curr.vel, particles_vel_arr_size, cudaMemcpyDeviceToHost))
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                        FILL IN: memory transfers for center-of-mass (step 3.1, step 3.2)                         //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    cudaMemcpy(&comOnGPU, comGPU, sizeof(float4), cudaMemcpyDeviceToHost);
-
-    gpuErrchk(cudaFree(particles_gpu_curr.pos))
-    gpuErrchk(cudaFree(particles_gpu_curr.vel))
-    gpuErrchk(cudaFree(particles_gpu_next.pos))
-    gpuErrchk(cudaFree(particles_gpu_next.vel))
-    gpuErrchk(cudaFree(comGPU))
-    gpuErrchk(cudaFree(lock))
-
+    gpuErrCheck(cudaMemcpy(&comOnGPU, comGPU, sizeof(float4), cudaMemcpyDeviceToHost))
 
     float4 comOnCPU = centerOfMassCPU(md);
 
@@ -318,8 +314,25 @@ int main(int argc, char **argv) {
     h5Helper.writeComFinal(comOnGPU.x, comOnGPU.y, comOnGPU.z, comOnGPU.w);
     h5Helper.writeParticleDataFinal();
 
-    gpuErrchk(cudaFreeHost(particles_cpu.pos))
-    gpuErrchk(cudaFreeHost(particles_cpu.vel))
+    gpuErrCheck(cudaFreeHost(particles_cpu.pos))
+    gpuErrCheck(cudaFreeHost(particles_cpu.vel))
+    gpuErrCheck(cudaFreeHost(comCPU))
+
+    gpuErrCheck(cudaFree(particles_gpu_curr.pos))
+    gpuErrCheck(cudaFree(particles_gpu_curr.vel))
+    gpuErrCheck(cudaFree(particles_gpu_next.pos))
+    gpuErrCheck(cudaFree(particles_gpu_next.vel))
+
+    gpuErrCheck(cudaFree(comGPU))
+    gpuErrCheck(cudaFree(lock))
+
+    gpuErrCheck(cudaStreamDestroy(velocity_stream))
+    gpuErrCheck(cudaStreamDestroy(com_stream))
+
+    gpuErrCheck(cudaEventDestroy(com_updated))
+    gpuErrCheck(cudaEventDestroy(com_copied))
+    gpuErrCheck(cudaEventDestroy(particles_updated))
+    gpuErrCheck(cudaEventDestroy(particles_copied))
 
     return 0;
 }// end of main
