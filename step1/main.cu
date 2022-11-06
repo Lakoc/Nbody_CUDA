@@ -129,6 +129,7 @@ int main(int argc, char **argv) {
     cudaMemcpy(particles_gpu_curr.pos, particles_cpu.pos, particles_pos_arr_size, cudaMemcpyHostToDevice);
     cudaMemcpy(particles_gpu_curr.vel, particles_cpu.vel, particles_vel_arr_size, cudaMemcpyHostToDevice);
 
+    // There is no need to copy velocities to next state of particles, they will never be accessed until calculation of next step
     cudaMemcpy(particles_gpu_next.pos, particles_cpu.pos, particles_vel_arr_size, cudaMemcpyHostToDevice);
 
 
@@ -199,6 +200,16 @@ int main(int argc, char **argv) {
     // Writing final values to the file
     h5Helper.writeComFinal(comOnGPU.x, comOnGPU.y, comOnGPU.z, comOnGPU.w);
     h5Helper.writeParticleDataFinal();
+
+    // Memory cleanup
+    free(particles_cpu.pos);
+    free(particles_cpu.vel);
+    cudaFree(particles_gpu_curr.pos);
+    cudaFree(particles_gpu_curr.vel);
+    cudaFree(particles_gpu_next.pos);
+    cudaFree(particles_gpu_next.vel);
+
+
 
     return 0;
 }// end of main

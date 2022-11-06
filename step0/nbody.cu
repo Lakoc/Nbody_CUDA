@@ -102,7 +102,7 @@ __global__ void calculate_collision_velocity(t_particles p, t_velocities tmp_vel
     bool colliding;
 
     for (int i = 0; i < N; i++) {
-        // Load particle 2 data
+        // Load particle_2 data
         pos_p2 = p.pos[i];
         vel_p2 = p.vel[i];
 
