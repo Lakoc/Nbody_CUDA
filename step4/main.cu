@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
         calculate_velocity<<<dimGrid, dimBlock, sharedMemory, velocity_stream>>>(*particles[s % 2],
                                                                                  *particles[(s + 1) % 2], N, dt);
 
-        // Event to enable writing particle_data to output file (3.5.1. III)
+        // Event to enable writing particle_data to output file (3.5.1. VI)
         gpuErrCheck(cudaEventRecord(particles_updated, velocity_stream))
 
         // Calculation of t[n] center of mass has to wait for t[n-1] particle_data calculation (3.5.1. V)
