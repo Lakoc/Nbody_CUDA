@@ -135,8 +135,6 @@ int main(int argc, char **argv) {
     gpuErrCheck(cudaMalloc<float4>(&particles_gpu_next.pos, particles_pos_arr_size))
     gpuErrCheck(cudaMalloc<float3>(&particles_gpu_next.vel, particles_vel_arr_size))
 
-
-
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                       FILL IN: memory transfers (step 0)                                         //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,7 +191,6 @@ int main(int argc, char **argv) {
     //                             FILL IN: memory transfers for particle data (step 0)                                 //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     float4 comOnGPU;
-
 
     gpuErrCheck(cudaMemcpy(particles_cpu.pos, particles_gpu_curr.pos, particles_pos_arr_size, cudaMemcpyDeviceToHost))
     gpuErrCheck(cudaMemcpy(particles_cpu.vel, particles_gpu_curr.vel, particles_vel_arr_size, cudaMemcpyDeviceToHost))

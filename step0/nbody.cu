@@ -118,7 +118,6 @@ __global__ void calculate_collision_velocity(t_particles p, t_velocities tmp_vel
         weight_difference = pos_p1.w - pos_p2.w;
         weight_sum = pos_p1.w + pos_p2.w;
         double_m2 = pos_p2.w * 2.0f;
-
         colliding = r > 0.0f && r <= COLLISION_DISTANCE;
 
         // If colliding add to temporal vector current velocities

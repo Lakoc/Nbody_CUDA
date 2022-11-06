@@ -36,7 +36,7 @@ __global__ void calculate_velocity(t_particles p_curr,
                                    float dt) {
     extern __shared__ float shared[];
 
-    // All threads have to stay active, otherwise there won't threads to store values to shared memory
+    // All threads have to stay active, otherwise there won't thread to store values to shared memory
 
     // Calculate how many floating point arrays can be saved to mem
     int elements_to_cache = (int) (dynamic_smem_size() / (blockDim.x * sizeof(float)));
@@ -77,6 +77,7 @@ __global__ void calculate_velocity(t_particles p_curr,
 
     // Iterate over grid with current block of threads
     for (int block = 0; block < gridDim.x; block++) {
+        // Update indexes
         block_offset = block * blockDim.x;
         load_index = block_offset + threadIdx.x;
 
@@ -87,6 +88,7 @@ __global__ void calculate_velocity(t_particles p_curr,
         if (is_shared_vel) {
             shared_vel[threadIdx.x] = p_curr.vel[load_index];
         }
+
         // Ensure all values are in shared memory
         __syncthreads();
 
@@ -106,13 +108,12 @@ __global__ void calculate_velocity(t_particles p_curr,
             // Calculate Euclidean distance between two particles
             r = sqrt(dx * dx + dy * dy + dz * dz);
 
-            r3 = r * r * r + FLT_MIN;
-            colliding = r > 0.0f && r <= COLLISION_DISTANCE;
-
             // If out of bounds simply set p2_weight to 0 -> which ensures both velocities fill be 0
             pos_p2.w = block_offset + i < N && global_id < N ? pos_p2.w : 0.0f;
 
             // Save values below to registers to save accesses to memory and multiple calculations of same code
+            r3 = r * r * r + FLT_MIN;
+            colliding = r > 0.0f && r <= COLLISION_DISTANCE;
             weight_difference = pos_p1.w - pos_p2.w;
             weight_sum = pos_p1.w + pos_p2.w;
             double_m2 = pos_p2.w * 2.0f;

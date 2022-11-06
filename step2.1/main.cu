@@ -129,25 +129,26 @@ int main(int argc, char **argv) {
     //                                  FILL IN: GPU side memory allocation (step 0)                                    //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    cudaMalloc<float4>(&particles_gpu_curr.pos, particles_pos_arr_size);
-    cudaMalloc<float3>(&particles_gpu_curr.vel, particles_vel_arr_size);
+    gpuErrCheck(cudaMalloc<float4>(&particles_gpu_curr.pos, particles_pos_arr_size))
+    gpuErrCheck(cudaMalloc<float3>(&particles_gpu_curr.vel, particles_vel_arr_size))
 
-    cudaMalloc<float4>(&particles_gpu_next.pos, particles_pos_arr_size);
-    cudaMalloc<float3>(&particles_gpu_next.vel, particles_vel_arr_size);
-
-
+    gpuErrCheck(cudaMalloc<float4>(&particles_gpu_next.pos, particles_pos_arr_size))
+    gpuErrCheck(cudaMalloc<float3>(&particles_gpu_next.vel, particles_vel_arr_size))
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                       FILL IN: memory transfers (step 0)                                         //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    cudaMemcpy(particles_gpu_curr.pos, particles_cpu.pos, particles_pos_arr_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(particles_gpu_curr.vel, particles_cpu.vel, particles_vel_arr_size, cudaMemcpyHostToDevice);
+    gpuErrCheck(cudaMemcpy(particles_gpu_curr.pos, particles_cpu.pos, particles_pos_arr_size, cudaMemcpyHostToDevice))
+    gpuErrCheck(cudaMemcpy(particles_gpu_curr.vel, particles_cpu.vel, particles_vel_arr_size, cudaMemcpyHostToDevice))
 
-    cudaMemcpy(particles_gpu_next.pos, particles_cpu.pos, particles_vel_arr_size, cudaMemcpyHostToDevice);
+    // There is no need to copy velocities to next state of particles, they will never be accessed until calculation of next step
+    gpuErrCheck(cudaMemcpy(particles_gpu_next.pos, particles_cpu.pos, particles_vel_arr_size, cudaMemcpyHostToDevice))
 
     dim3 dimBlock(thr_blc);
     dim3 dimGrid(simulationGrid);
+
+    // Calculate size of memory for block
     size_t sharedMemory = thr_blc * (sizeof(float4) + sizeof(float3));
 
     gettimeofday(&t1, 0);
@@ -176,7 +177,8 @@ int main(int argc, char **argv) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //              FILL IN: invocation of center-of-mass kernel (step 3.1, step 3.2, step 4)                           //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    cudaDeviceSynchronize();
+    gpuErrCheck(cudaDeviceSynchronize())
+    gpuErrCheck(cudaPeekAtLastError())
 
     gettimeofday(&t2, 0);
 
@@ -191,9 +193,8 @@ int main(int argc, char **argv) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     float4 comOnGPU;
 
-
-    cudaMemcpy(particles_cpu.pos, particles_gpu_curr.pos, particles_pos_arr_size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(particles_cpu.vel, particles_gpu_curr.vel, particles_vel_arr_size, cudaMemcpyDeviceToHost);
+    gpuErrCheck(cudaMemcpy(particles_cpu.pos, particles_gpu_curr.pos, particles_pos_arr_size, cudaMemcpyDeviceToHost))
+    gpuErrCheck(cudaMemcpy(particles_cpu.vel, particles_gpu_curr.vel, particles_vel_arr_size, cudaMemcpyDeviceToHost))
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                        FILL IN: memory transfers for center-of-mass (step 3.1, step 3.2)                         //
@@ -217,6 +218,14 @@ int main(int argc, char **argv) {
     // Writing final values to the file
     h5Helper.writeComFinal(comOnGPU.x, comOnGPU.y, comOnGPU.z, comOnGPU.w);
     h5Helper.writeParticleDataFinal();
+
+    free(particles_cpu.pos);
+    free(particles_cpu.vel);
+
+    cudaFree(particles_gpu_curr.pos);
+    cudaFree(particles_gpu_curr.vel);
+    cudaFree(particles_gpu_next.pos);
+    cudaFree(particles_gpu_next.vel);
 
     return 0;
 }// end of main

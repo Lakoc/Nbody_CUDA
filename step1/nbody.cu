@@ -56,15 +56,14 @@ __global__ void calculate_velocity(t_particles p_curr,
 
         // Calculate Euclidean distance between two particles
         r = sqrt(dx * dx + dy * dy + dz * dz);
-        r3 = r * r * r + FLT_MIN;
-
-        colliding = r > 0.0f && r <= COLLISION_DISTANCE;
 
         // Save values below to registers to save accesses to memory and multiple calculations of same code
         weight_difference = pos_p1.w - pos_p2.w;
         weight_sum = pos_p1.w + pos_p2.w;
         double_m2 = pos_p2.w * 2.0f;
         Fg_dt_m2_r = G * dt / r3 * pos_p2.w;
+        r3 = r * r * r + FLT_MIN;
+        colliding = r > 0.0f && r <= COLLISION_DISTANCE;
 
         // If there is collision add collision velocities, otherwise gravitational ->
         // gravitational velocities are skipped if there is collision, likewise vice versa
