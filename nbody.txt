@@ -26,9 +26,8 @@ Vyskytlo se něco neočekávaného v naměřených časech
 Pokud ano, vysvětlete:
 
 Grafická karta Nvidia A100 na clusteru Karolina disponuje 108 SM jednotkami.
-Dle zadání blok disponuje 512 vlákny, tudiž vstup o velikosti N=53760 se mapuje na 105 bloků, což vede k dobrému využití (105/108) skoro všech SM jednotek.
-Naopak vstup o velikosti N=56320 se mapuje na 110 bloků. Avšak není možné najednou namapovat 110 bloků na HW s 108 SM jednotkami.
-Tedy zbylé dva bloky musí čekat, až budou spočteny některé dva bloky, aby mohly zahájit svojí činnost, což vede k časové prodlevě.
+Dle zadání blok disponuje 512 vlákny, tudiž vstup o velikosti N=53760 se rozdělí na 105 bloků, což vede k dobrému využití (105/108) skoro všech SM jednotek a odpadá nutnost přepínání kontextu.
+Naopak vstup o velikosti N=56320 se rozdělí na 110 bloků, což nutně vede k tomu, že zbylé dva bloky musí čekat, až dojde k přepnutí kontextu, aby mohly zahájit svojí činnost, což vede k časové prodlevě.
 
 
 Krok 1: optimalizace kódu

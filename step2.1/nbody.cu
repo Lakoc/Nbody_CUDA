@@ -66,7 +66,7 @@ __global__ void calculate_velocity(t_particles p_curr,
         block_offset = block * blockDim.x;
         load_index = block_offset + threadIdx.x;
 
-        // Load data to shared memory if enabled
+        // Load data to shared memory
         shared_pos[threadIdx.x] = p_curr.pos[load_index];
         shared_vel[threadIdx.x] = p_curr.vel[load_index];
 

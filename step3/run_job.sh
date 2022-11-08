@@ -14,6 +14,7 @@ ml Python/3.10.4-GCCcore-11.3.0
 
 cd $PROJECT_DIR/$STEP
 make
+make check_output
 make profile
 
 cd $PROJECT_DIR/tests

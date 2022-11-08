@@ -85,8 +85,9 @@ int main(int argc, char **argv) {
     size_t particles_pos_arr_size = N * sizeof(float4);
     size_t particles_vel_arr_size = N * sizeof(float3);
 
-    particles_cpu.pos = static_cast<float4 *>(malloc(particles_pos_arr_size));
-    particles_cpu.vel = static_cast<float3 *>(malloc(particles_vel_arr_size));
+    // Allocation of pinned, pageable memory at host
+    gpuErrCheck(cudaMallocHost(&particles_cpu.pos, particles_pos_arr_size));
+    gpuErrCheck(cudaMallocHost(&particles_cpu.vel, particles_vel_arr_size));
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                              FILL IN: memory layout descriptor (step 0)                                          //
@@ -217,12 +218,12 @@ int main(int argc, char **argv) {
     h5Helper.writeParticleDataFinal();
 
     // Memory cleanup
-    free(particles_cpu.pos);
-    free(particles_cpu.vel);
+    gpuErrCheck(cudaFreeHost(particles_cpu.pos))
+    gpuErrCheck(cudaFreeHost(particles_cpu.vel))
 
-    cudaFree(particles_gpu.pos);
-    cudaFree(particles_gpu.vel);
-    cudaFree(velocities_gpu.vel);
+    gpuErrCheck(cudaFree(particles_gpu.pos))
+    gpuErrCheck(cudaFree(particles_gpu.vel))
+    gpuErrCheck(cudaFree(velocities_gpu.vel))
 
     return 0;
 }// end of main
