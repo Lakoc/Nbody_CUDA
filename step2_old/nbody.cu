@@ -34,13 +34,29 @@ __global__ void calculate_velocity(t_particles p_curr,
                                    t_particles p_next,
                                    int N,
                                    float dt) {
-    // All threads have to stay active, otherwise there won't thread to store values to shared memory
     extern __shared__ float shared[];
+
+    // All threads have to stay active, otherwise there won't thread to store values to shared memory
+
+    // Calculate how many floating point arrays can be saved to mem
+    int elements_to_cache = (int) (dynamic_smem_size() / (blockDim.x * sizeof(float)));
+
+    // Inherit whatever data position and velocities data could be saved to shared mem
+    bool is_shared_pos = elements_to_cache >= POS_ELEMENTS;
+    bool is_shared_vel = elements_to_cache >= POS_ELEMENTS + VEL_ELEMENTS;
+
+    bool is_mem_pos = !is_shared_pos;
+    bool is_mem_vel = !is_shared_vel;
+
+    // Aux pointer for unified indexing, and to avoid memory operation in not allocated sources
+    auto *shared_pos = reinterpret_cast<float4 *>(is_shared_pos ? shared : nullptr);
+    auto *shared_vel = reinterpret_cast<float3 *>(is_shared_vel ? &shared[blockDim.x * POS_ELEMENTS] : nullptr);
+
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
 
-    // Aux pointer for unified indexing and reinterpreting of memory
-    auto *shared_pos = reinterpret_cast<float4 *>(shared);
-    auto *shared_vel = reinterpret_cast<float3 *>( &shared[blockDim.x * POS_ELEMENTS] );
+    // Aux pointers to memories
+    float4 *pos_mem = is_shared_pos ? shared_pos : p_curr.pos;
+    float3 *vel_mem = is_shared_vel ? shared_vel : p_curr.vel;
 
     // Auxiliary registers to store p1 and p2 current positions, weights and velocities
     float4 pos_p1 = p_curr.pos[global_id];
@@ -49,12 +65,11 @@ __global__ void calculate_velocity(t_particles p_curr,
     float3 vel_p2;
 
     // Aux variables used in loop below
-    float ir, dx, dy, dz, ir3, Fg_dt_m2_r, weight_difference, weight_sum, double_m2;
+    float r, dx, dy, dz, r3, Fg_dt_m2_r, weight_difference, weight_sum, double_m2;
 
     // Temp vector to store collision velocities sum, no need to access global memory at each iteration
     float3 v_temp = {0.0f, 0.0f, 0.0f};
-
-    bool not_colliding;
+    bool colliding;
 
     // Aux values to save block offsets and real load index
     unsigned block_offset;
@@ -66,9 +81,13 @@ __global__ void calculate_velocity(t_particles p_curr,
         block_offset = block * blockDim.x;
         load_index = block_offset + threadIdx.x;
 
-        // Load data to shared memory
-        shared_pos[threadIdx.x] = p_curr.pos[load_index];
-        shared_vel[threadIdx.x] = p_curr.vel[load_index];
+        // Load data to shared memory if enabled
+        if (is_shared_pos) {
+            shared_pos[threadIdx.x] = p_curr.pos[load_index];
+        }
+        if (is_shared_vel) {
+            shared_vel[threadIdx.x] = p_curr.vel[load_index];
+        }
 
         // Ensure all values are in shared memory
         __syncthreads();
@@ -76,8 +95,8 @@ __global__ void calculate_velocity(t_particles p_curr,
         // Iterate over all others elements in the block
         for (int i = 0; i < blockDim.x; i++) {
             // Load particle_2 data
-            pos_p2 = shared_pos[i];
-            vel_p2 = shared_vel[i];
+            pos_p2 = pos_mem[block_offset * is_mem_pos + i];
+            vel_p2 = vel_mem[block_offset * is_mem_vel + i];
 
             // Calculate per axis distance
             // In case of collision, distance are only used to calculate Euclidean distance,
@@ -86,28 +105,29 @@ __global__ void calculate_velocity(t_particles p_curr,
             dy = pos_p2.y - pos_p1.y;
             dz = pos_p2.z - pos_p1.z;
 
-            // Calculate inverse Euclidean distance between two particles, get rid of division
-            ir = rsqrt(dx * dx + dy * dy + dz * dz);
+            // Calculate Euclidean distance between two particles
+            r = sqrt(dx * dx + dy * dy + dz * dz);
 
             // If out of bounds simply set p2_weight to 0 -> which ensures both velocities fill be 0
             pos_p2.w = block_offset + i < N && global_id < N ? pos_p2.w : 0.0f;
 
             // Save values below to registers to save accesses to memory and multiple calculations of same code
-            ir3 = ir * ir * ir + FLT_MIN;
-            not_colliding = ir < COLLISION_DISTANCE_INVERSE;
+            r3 = r * r * r + FLT_MIN;
+            colliding = r > 0.0f && r <= COLLISION_DISTANCE;
             weight_difference = pos_p1.w - pos_p2.w;
             weight_sum = pos_p1.w + pos_p2.w;
             double_m2 = pos_p2.w * 2.0f;
-            Fg_dt_m2_r = G * dt * ir3 * pos_p2.w;
+            Fg_dt_m2_r = G * dt / r3 * pos_p2.w;
 
             // If there is collision add collision velocities, otherwise gravitational ->
             // gravitational velocities are skipped if there is collision, likewise vice versa
-            v_temp.x += not_colliding ? Fg_dt_m2_r * dx :
-                        ((vel_p1.x * weight_difference + double_m2 * vel_p2.x) / weight_sum) - vel_p1.x;
-            v_temp.y += not_colliding ? Fg_dt_m2_r * dy :
-                        ((vel_p1.y * weight_difference + double_m2 * vel_p2.y) / weight_sum) - vel_p1.y;
-            v_temp.z += not_colliding ? Fg_dt_m2_r * dz :
-                        ((vel_p1.z * weight_difference + double_m2 * vel_p2.z) / weight_sum) - vel_p1.z;
+            v_temp.x += colliding ? ((vel_p1.x * weight_difference + double_m2 * vel_p2.x) / weight_sum) - vel_p1.x :
+                        Fg_dt_m2_r * dx;
+            v_temp.y += colliding ? ((vel_p1.y * weight_difference + double_m2 * vel_p2.y) / weight_sum) - vel_p1.y :
+                        Fg_dt_m2_r * dy;
+            v_temp.z += colliding ? ((vel_p1.z * weight_difference + double_m2 * vel_p2.z) / weight_sum) - vel_p1.z :
+                        Fg_dt_m2_r * dz;
+
         }
         // Ensures no thread loads new value to shared until all warps are ready
         __syncthreads();

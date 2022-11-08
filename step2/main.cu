@@ -16,7 +16,7 @@
 #include "h5Helper.h"
 
 /**
- * Aux macro and function to log last cuda err
+ * Aux function to log last cuda err
  * Author: Robert Crovella, talonmies  Source: https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
  */
 #define gpuErrCheck(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -85,8 +85,9 @@ int main(int argc, char **argv) {
     size_t particles_pos_arr_size = N * sizeof(float4);
     size_t particles_vel_arr_size = N * sizeof(float3);
 
-    particles_cpu.pos = static_cast<float4 *>(malloc(particles_pos_arr_size));
-    particles_cpu.vel = static_cast<float3 *>(malloc(particles_vel_arr_size));
+    // Allocation of pinned, pageable memory at host
+    gpuErrCheck(cudaMallocHost(&particles_cpu.pos, particles_pos_arr_size));
+    gpuErrCheck(cudaMallocHost(&particles_cpu.vel, particles_vel_arr_size));
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                              FILL IN: memory layout descriptor (step 0)                                          //
@@ -185,6 +186,7 @@ int main(int argc, char **argv) {
     // Approximate simulation wall time
     double t = (1000000.0 * (t2.tv_sec - t1.tv_sec) + t2.tv_usec - t1.tv_usec) / 1000000.0;
     printf("Time: %f s\n", t);
+    gpuErrCheck(cudaPeekAtLastError());
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -218,13 +220,13 @@ int main(int argc, char **argv) {
     h5Helper.writeComFinal(comOnGPU.x, comOnGPU.y, comOnGPU.z, comOnGPU.w);
     h5Helper.writeParticleDataFinal();
 
-    free(particles_cpu.pos);
-    free(particles_cpu.vel);
+    gpuErrCheck(cudaFreeHost(particles_cpu.pos))
+    gpuErrCheck(cudaFreeHost(particles_cpu.vel))
 
-    cudaFree(particles_gpu_curr.pos);
-    cudaFree(particles_gpu_curr.vel);
-    cudaFree(particles_gpu_next.pos);
-    cudaFree(particles_gpu_next.vel);
+    gpuErrCheck(cudaFree(particles_gpu_curr.pos))
+    gpuErrCheck(cudaFree(particles_gpu_curr.vel))
+    gpuErrCheck(cudaFree(particles_gpu_next.pos))
+    gpuErrCheck(cudaFree(particles_gpu_next.vel))
 
     return 0;
 }// end of main

@@ -5,7 +5,7 @@
 #PBS -l walltime=1:00:00
 #PBS -N PCG-NBODY
 
-STEP=step2
+STEP=step2.1
 PROJECT_DIR=/home/lakoc/PCG_NBODY
 
 ml HDF5/1.12.2-iimpi-2022a
@@ -14,6 +14,7 @@ ml Python/3.10.4-GCCcore-11.3.0
 
 cd $PROJECT_DIR/$STEP
 make
+make check_output
 make profile
 
 cd $PROJECT_DIR/tests

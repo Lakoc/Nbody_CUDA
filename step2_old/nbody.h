@@ -18,7 +18,6 @@
 /* Gravitation constant */
 constexpr float G = 6.67384e-11f;
 constexpr float COLLISION_DISTANCE = 0.01f;
-constexpr float COLLISION_DISTANCE_INVERSE = 100;
 
 
 /**
@@ -32,6 +31,7 @@ typedef struct {
     float3 *vel;
 } t_particles;
 
+// Offsets
 #define POS_ELEMENTS 4
 #define VEL_ELEMENTS 3
 
