@@ -34,12 +34,13 @@ __global__ void calculate_velocity(t_particles p_curr,
                                    t_particles p_next,
                                    int N,
                                    float dt) {
-
+    // All threads have to stay active, otherwise there won't thread to store values to shared memory
+    extern __shared__ float shared[];
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
-    // If out of bounds, there is no work -> small divergence at last block
-    if (global_id >= N) {
-        return;
-    }
+
+    // Aux pointer for unified indexing and reinterpreting of memory
+    auto *shared_pos = reinterpret_cast<float4 *>(shared);
+    auto *shared_vel = reinterpret_cast<float3 *>( &shared[blockDim.x * POS_ELEMENTS] );
 
     // Auxiliary registers to store p1 and p2 current positions, weights and velocities
     float4 pos_p1 = p_curr.pos[global_id];
@@ -52,53 +53,81 @@ __global__ void calculate_velocity(t_particles p_curr,
 
     // Temp vector to store collision velocities sum, no need to access global memory at each iteration
     float3 v_temp = {0.0f, 0.0f, 0.0f};
+
     bool not_colliding;
 
-    for (int i = 0; i < N; i++) {
-        // Load particle_2 data
-        pos_p2 = p_curr.pos[i];
-        vel_p2 = p_curr.vel[i];
+    // Aux values to save block offsets and real load index
+    unsigned block_offset;
+    unsigned load_index;
 
-        // Calculate per axis distance
-        // In case of collision, distance are only used to calculate Euclidean distance,
-        // thus they can be kept in reversed order
-        dx = pos_p2.x - pos_p1.x;
-        dy = pos_p2.y - pos_p1.y;
-        dz = pos_p2.z - pos_p1.z;
+    // Iterate over grid with current block of threads
+    for (int block = 0; block < gridDim.x; block++) {
+        // Update indexes
+        block_offset = block * blockDim.x;
+        load_index = block_offset + threadIdx.x;
 
-        // Calculate inverse Euclidean distance between two particles, get rid of division
-        ir = rsqrt(dx * dx + dy * dy + dz * dz);
+        // Load data to shared memory
+        shared_pos[threadIdx.x] = p_curr.pos[load_index];
+        shared_vel[threadIdx.x] = p_curr.vel[load_index];
 
-        // Save values below to registers to save accesses to memory and multiple calculations of same code
-        ir3 = ir * ir * ir + FLT_MIN;
-        not_colliding = ir < COLLISION_DISTANCE_INVERSE;
-        weight_difference = pos_p1.w - pos_p2.w;
-        weight_sum = pos_p1.w + pos_p2.w;
-        double_m2 = pos_p2.w * 2.0f;
-        Fg_dt_m2_r = G * dt * ir3 * pos_p2.w;
+        // Ensure all values are in shared memory
+        __syncthreads();
 
-        // If there is collision add collision velocities, otherwise gravitational ->
-        // gravitational velocities are skipped if there is collision, likewise vice versa
-        v_temp.x += not_colliding ? Fg_dt_m2_r * dx :
-                    ((vel_p1.x * weight_difference + double_m2 * vel_p2.x) / weight_sum) - vel_p1.x;
-        v_temp.y += not_colliding ? Fg_dt_m2_r * dy :
-                    ((vel_p1.y * weight_difference + double_m2 * vel_p2.y) / weight_sum) - vel_p1.y;
-        v_temp.z += not_colliding ? Fg_dt_m2_r * dz :
-                    ((vel_p1.z * weight_difference + double_m2 * vel_p2.z) / weight_sum) - vel_p1.z;
+        // Iterate over all others elements in the block
+        for (int i = 0; i < blockDim.x; i++) {
+            // Load particle_2 data
+            pos_p2 = shared_pos[i];
+            vel_p2 = shared_vel[i];
 
+            // Calculate per axis distance
+            // In case of collision, distance are only used to calculate Euclidean distance,
+            // thus they can be kept in reversed order
+            dx = pos_p2.x - pos_p1.x;
+            dy = pos_p2.y - pos_p1.y;
+            dz = pos_p2.z - pos_p1.z;
+
+            // Calculate inverse Euclidean distance between two particles, get rid of division
+            ir = rsqrt(dx * dx + dy * dy + dz * dz);
+
+            // If out of bounds simply set p2_weight to 0 -> which ensures both velocities fill be 0
+            pos_p2.w = block_offset + i < N && global_id < N ? pos_p2.w : 0.0f;
+
+            // Save values below to registers to save accesses to memory and multiple calculations of same code
+            ir3 = ir * ir * ir + FLT_MIN;
+            not_colliding = ir < COLLISION_DISTANCE_INVERSE;
+            weight_difference = pos_p1.w - pos_p2.w;
+            weight_sum = pos_p1.w + pos_p2.w;
+            double_m2 = pos_p2.w * 2.0f;
+            Fg_dt_m2_r = G * dt * ir3 * pos_p2.w;
+
+            // If there is collision add collision velocities, otherwise gravitational ->
+            // gravitational velocities are skipped if there is collision, likewise vice versa
+            v_temp.x += not_colliding ? Fg_dt_m2_r * dx :
+                        ((vel_p1.x * weight_difference + double_m2 * vel_p2.x) / weight_sum) - vel_p1.x;
+            v_temp.y += not_colliding ? Fg_dt_m2_r * dy :
+                        ((vel_p1.y * weight_difference + double_m2 * vel_p2.y) / weight_sum) - vel_p1.y;
+            v_temp.z += not_colliding ? Fg_dt_m2_r * dz :
+                        ((vel_p1.z * weight_difference + double_m2 * vel_p2.z) / weight_sum) - vel_p1.z;
+        }
+        // Ensures no thread loads new value to shared until all warps are ready
+        __syncthreads();
     }
 
-    // Update values in global context
-    vel_p1.x += v_temp.x;
-    vel_p1.y += v_temp.y;
-    vel_p1.z += v_temp.z;
-    p_next.vel[global_id] = vel_p1;
+    // Skip if thread is out of range
+    if (global_id < N) {
+        // Update values in global context
+        vel_p1.x += v_temp.x;
+        vel_p1.y += v_temp.y;
+        vel_p1.z += v_temp.z;
+        p_next.vel[global_id] = vel_p1;
 
-    // Positions are updated with current velocities
-    pos_p1.x += vel_p1.x * dt;
-    pos_p1.y += vel_p1.y * dt;
-    pos_p1.z += vel_p1.z * dt;
-    p_next.pos[global_id] = pos_p1;
+        // Positions are updated with current velocities
+        pos_p1.x += vel_p1.x * dt;
+        pos_p1.y += vel_p1.y * dt;
+        pos_p1.z += vel_p1.z * dt;
+        p_next.pos[global_id] = pos_p1;
+    }
+
 }// end of calculate_gravitation_velocity
 //----------------------------------------------------------------------------------------------------------------------
 

@@ -5,22 +5,23 @@ Login: xpolok03
 Krok 0: základní implementace
 =============================
 i           Velikost dat    	čas jedne iterace [s]
-10          N: 25600            Time: 0.012882 s
-11          N: 28160            Time: 0.014168 s
-12          N: 30720            Time: 0.015453 s
-13          N: 33280            Time: 0.016755 s
-14          N: 35840            Time: 0.018018 s
-15          N: 38400            Time: 0.019293 s
-16          N: 40960            Time: 0.020587 s
-17          N: 43520            Time: 0.021878 s
-18          N: 46080            Time: 0.023171 s
-19          N: 48640            Time: 0.024450 s
-20          N: 51200            Time: 0.025732 s
-21          N: 53760            Time: 0.027020 s
-22          N: 56320            Time: 0.046741 s
-23          N: 58880            Time: 0.048917 s
-24          N: 61440            Time: 0.051202 s
-25          N: 64000            Time: 0.053444 s
+10          N: 25600            Time: 0.009681 s
+11          N: 28160            Time: 0.010645 s
+12          N: 30720            Time: 0.011614 s
+13          N: 33280            Time: 0.012587 s
+14          N: 35840            Time: 0.013547 s
+15          N: 38400            Time: 0.014514 s
+16          N: 40960            Time: 0.015477 s
+17          N: 43520            Time: 0.016444 s
+18          N: 46080            Time: 0.017410 s
+19          N: 48640            Time: 0.018374 s
+20          N: 51200            Time: 0.019338 s
+21          N: 53760            Time: 0.020309 s
+22          N: 56320            Time: 0.029949 s
+23          N: 58880            Time: 0.031323 s
+24          N: 61440            Time: 0.032808 s
+25          N: 64000            Time: 0.034268 s
+
 
 Vyskytlo se něco neočekávaného v naměřených časech  
 Pokud ano, vysvětlete:
@@ -34,9 +35,30 @@ Krok 1: optimalizace kódu
 =====================
 Došlo ke zrychlení?
 
+Ano, došlo ke zrychlení cca 35% oproti původní verzi.
+
+i           Velikost dat    	čas jedne iterace [s]
+10          N: 25600            Time: 0.006461 s
+11          N: 28160            Time: 0.007102 s
+12          N: 30720            Time: 0.007748 s
+13          N: 33280            Time: 0.008392 s
+14          N: 35840            Time: 0.009031 s
+15          N: 38400            Time: 0.009679 s
+16          N: 40960            Time: 0.010321 s
+17          N: 43520            Time: 0.010961 s
+18          N: 46080            Time: 0.011605 s
+19          N: 48640            Time: 0.012248 s
+20          N: 51200            Time: 0.012891 s
+21          N: 53760            Time: 0.013539 s
+22          N: 56320            Time: 0.019427 s
+23          N: 58880            Time: 0.020301 s
+24          N: 61440            Time: 0.021237 s
+25          N: 64000            Time: 0.022143 s
+
+
 Popište hlavní důvody:
 
-Ano, došlo ke zrychlení cca 40% oproti původní verzi, jelikož odpadla nutnost synchronizace mezi kernely, taktéž došlo k lepšímu znovupoužití načtených hodnot v registrech.
+Odpadla nutnost synchronizace mezi kernely, taktéž došlo k lepšímu znovupoužití načtených hodnot v registrech.
 Zároveň není nutné počítat veličiny jako vzdálenost na ose x,y, ... dvakrát.
 Částice do sebe naražejí, nebo na sebe působí gravitační sílu - došlo tedy k omezení zbytečného kódu, kdy probíhal výpočet, avšak do vektoru rychlosti byla přiřazena 0.
 Nyní je v obou případech přičtena nová rychlost a došlo k jistému snížení divergence vláken při zapsání výsledků (2x2->2).
@@ -45,9 +67,29 @@ Krok 2: sdílená paměť
 =====================
 Došlo ke zrychlení?
 
+Ano, došlo k dalšímu zrychlení, cca 10%.
+
+i           Velikost dat    	čas jedne iterace [s]
+10          N: 25600            Time: 0.004725 s
+11          N: 28160            Time: 0.005193 s
+12          N: 30720            Time: 0.005663 s
+13          N: 33280            Time: 0.006132 s
+14          N: 35840            Time: 0.006598 s
+15          N: 38400            Time: 0.007068 s
+16          N: 40960            Time: 0.007536 s
+17          N: 43520            Time: 0.008007 s
+18          N: 46080            Time: 0.008473 s
+19          N: 48640            Time: 0.008942 s
+20          N: 51200            Time: 0.009411 s
+21          N: 53760            Time: 0.009878 s
+22          N: 56320            Time: 0.017790 s
+23          N: 58880            Time: 0.018598 s
+24          N: 61440            Time: 0.019410 s
+25          N: 64000            Time: 0.020210 s
+
 Zdůvodněte:
 
-
+K zrychlení dochází kvůli tomu, že hodnoty jsou načteny do sdílené paměti. Ta se nachází přímo na čipu, což vede k paměťovým transakcím, které jsou mnohem rychlejší.
 
 
 Krok 5: analýza výkonu
