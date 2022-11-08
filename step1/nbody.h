@@ -18,6 +18,7 @@
 /* Gravitation constant */
 constexpr float G = 6.67384e-11f;
 constexpr float COLLISION_DISTANCE = 0.01f;
+constexpr float COLLISION_DISTANCE_INVERSE = 100;
 
 
 /**

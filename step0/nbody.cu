@@ -22,7 +22,7 @@
 __global__ void calculate_gravitation_velocity(t_particles p, t_velocities tmp_vel, int N, float dt) {
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
     // If out of bounds, there is no work -> small divergence at last block
-    if (global_id >= N){
+    if (global_id >= N) {
         return;
     }
 
@@ -32,7 +32,7 @@ __global__ void calculate_gravitation_velocity(t_particles p, t_velocities tmp_v
     float4 pos_p2;
 
     // Aux variables used in loop below
-    float r, dx, dy, dz, r3, Fg_dt_m2_r;;
+    float ir, dx, dy, dz, ir3, Fg_dt_m2_r;;
 
     // Temp vector to store gravitation velocities sum, no need to access global memory at each iteration
     float3 v_temp = {0.0f, 0.0f, 0.0f};
@@ -47,16 +47,16 @@ __global__ void calculate_gravitation_velocity(t_particles p, t_velocities tmp_v
         // Reverted order to save up 1 more unary operation (-G  -> G)
         dx = pos_p2.x - pos_p1.x;
         dy = pos_p2.y - pos_p1.y;
-        dz =pos_p2.z - pos_p1.z;
+        dz = pos_p2.z - pos_p1.z;
 
-        // Calculate Euclidean distance between two particles
-        r = sqrt(dx * dx + dy * dy + dz * dz);
-        r3 = r * r * r + FLT_MIN;
+        // Calculate inverse of Euclidean distance between two particles, get rid of division
+        ir = rsqrt(dx * dx + dy * dy + dz * dz);
+        ir3 = ir * ir * ir + FLT_MIN;
 
         // Simplified from CPU implementation
-        Fg_dt_m2_r = G * dt / r3 * pos_p2.w;
+        Fg_dt_m2_r = G * dt * ir3 * pos_p2.w;
 
-        not_colliding = r > COLLISION_DISTANCE;
+        not_colliding = ir < COLLISION_DISTANCE_INVERSE;
 
         // If there is no collision, add local velocities to temporal vector
         v_temp.x += not_colliding ? Fg_dt_m2_r * dx : 0.0f;
@@ -83,7 +83,7 @@ __global__ void calculate_collision_velocity(t_particles p, t_velocities tmp_vel
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
 
     // If out of bounds, there is no work -> small divergence at last block
-    if (global_id > N){
+    if (global_id > N) {
         return;
     }
 
@@ -94,7 +94,7 @@ __global__ void calculate_collision_velocity(t_particles p, t_velocities tmp_vel
     float3 vel_p2;
 
     // Aux variables used in loop below
-    float r, dx, dy, dz, weight_difference, weight_sum, double_m2;
+    float ir, dx, dy, dz, weight_difference, weight_sum, double_m2;
 
     // Temp vector to store collision velocities sum, no need to access global memory at each iteration
     float3 v_temp = {0.0f, 0.0f, 0.0f};
@@ -111,14 +111,16 @@ __global__ void calculate_collision_velocity(t_particles p, t_velocities tmp_vel
         dy = pos_p1.y - pos_p2.y;
         dz = pos_p1.z - pos_p2.z;
 
-        // Calculate Euclidean distance between two particles
-        r = sqrt(dx * dx + dy * dy + dz * dz);
+        // Calculate inverse Euclidean distance between two particles, get rid of division
+        ir = rsqrt(dx * dx + dy * dy + dz * dz);
 
         // Save values below to registers to save accesses to memory and multiple calculations of same code
         weight_difference = pos_p1.w - pos_p2.w;
         weight_sum = pos_p1.w + pos_p2.w;
         double_m2 = pos_p2.w * 2.0f;
-        colliding = r > 0.0f && r <= COLLISION_DISTANCE;
+
+        // Inverse condition, inverse distance is equal to infinity if it's calculated between same point
+        colliding = !isinf(ir) && ir >= COLLISION_DISTANCE_INVERSE;
 
         // If colliding add to temporal vector current velocities
         // Application of distributive law of *,+ operations in Real field => p1.weight* p1.vel_x - p2.weight *p1.vel_x  - > p1.vel_x * (weight_difference)
@@ -144,7 +146,7 @@ __global__ void calculate_collision_velocity(t_particles p, t_velocities tmp_vel
 __global__ void update_particle(t_particles p, t_velocities tmp_vel, int N, float dt) {
     unsigned global_id = threadIdx.x + blockIdx.x * blockDim.x;
     // small divergence to ensure there is no segfault
-    if (global_id > N){
+    if (global_id > N) {
         return;
     }
     p.vel[global_id].x += tmp_vel.vel[global_id].x;

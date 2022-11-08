@@ -36,11 +36,11 @@ __global__ void calculate_velocity(t_particles p_curr,
     float3 vel_p2;
 
     // Aux variables used in loop below
-    float r, dx, dy, dz, r3, Fg_dt_m2_r, weight_difference, weight_sum, double_m2;
+    float ir, dx, dy, dz, ir3, Fg_dt_m2_r, weight_difference, weight_sum, double_m2;
 
     // Temp vector to store collision velocities sum, no need to access global memory at each iteration
     float3 v_temp = {0.0f, 0.0f, 0.0f};
-    bool colliding;
+    bool not_colliding;
 
     for (int i = 0; i < N; i++) {
         // Load particle_2 data
@@ -54,25 +54,25 @@ __global__ void calculate_velocity(t_particles p_curr,
         dy = pos_p2.y - pos_p1.y;
         dz = pos_p2.z - pos_p1.z;
 
-        // Calculate Euclidean distance between two particles
-        r = sqrt(dx * dx + dy * dy + dz * dz);
+        // Calculate inverse Euclidean distance between two particles, get rid of division
+        ir = rsqrt(dx * dx + dy * dy + dz * dz);
 
         // Save values below to registers to save accesses to memory and multiple calculations of same code
-        r3 = r * r * r + FLT_MIN;
-        colliding = r > 0.0f && r <= COLLISION_DISTANCE;
+        ir3 = ir * ir * ir + FLT_MIN;
+        not_colliding = ir < COLLISION_DISTANCE_INVERSE;
         weight_difference = pos_p1.w - pos_p2.w;
         weight_sum = pos_p1.w + pos_p2.w;
         double_m2 = pos_p2.w * 2.0f;
-        Fg_dt_m2_r = G * dt / r3 * pos_p2.w;
+        Fg_dt_m2_r = G * dt * ir3 * pos_p2.w;
 
         // If there is collision add collision velocities, otherwise gravitational ->
         // gravitational velocities are skipped if there is collision, likewise vice versa
-        v_temp.x += colliding ? ((vel_p1.x * weight_difference + double_m2 * vel_p2.x) / weight_sum) - vel_p1.x :
-                    Fg_dt_m2_r * dx;
-        v_temp.y += colliding ? ((vel_p1.y * weight_difference + double_m2 * vel_p2.y) / weight_sum) - vel_p1.y :
-                    Fg_dt_m2_r * dy;
-        v_temp.z += colliding ? ((vel_p1.z * weight_difference + double_m2 * vel_p2.z) / weight_sum) - vel_p1.z :
-                    Fg_dt_m2_r * dz;
+        v_temp.x += not_colliding ? Fg_dt_m2_r * dx :
+                    ((vel_p1.x * weight_difference + double_m2 * vel_p2.x) / weight_sum) - vel_p1.x;
+        v_temp.y += not_colliding ? Fg_dt_m2_r * dy :
+                    ((vel_p1.y * weight_difference + double_m2 * vel_p2.y) / weight_sum) - vel_p1.y;
+        v_temp.z += not_colliding ? Fg_dt_m2_r * dz :
+                    ((vel_p1.z * weight_difference + double_m2 * vel_p2.z) / weight_sum) - vel_p1.z;
     }
 
     // Update values in global context
