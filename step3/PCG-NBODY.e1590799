@@ -1,0 +1,8 @@
+make: [check_output] Error 1 (ignored)
+make: [check_output] Error 1 (ignored)
+make: [check_output] Error 1 (ignored)
+make: [check_output] Error 1 (ignored)
+make: [check_output] Error 1 (ignored)
+make: [check_output] Error 1 (ignored)
+WARNING: You are using pip version 22.0.4; however, version 22.3.1 is available.
+You should consider upgrading via the '/home/lakoc/PCG_NBODY/tests/py-test-env/bin/python3 -m pip install --upgrade pip' command.

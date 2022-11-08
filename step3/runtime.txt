@@ -1,0 +1,224 @@
+N: 25600
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 50
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.006124 s
+Center of mass on CPU:
+50.1523, 50.0128, 49.921, 3.18891e+13
+Center of mass on GPU:
+50.1522, 50.0127, 49.921, 3.1889e+13
+
+N: 28160
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 55
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.006731 s
+Center of mass on CPU:
+50.1937, 50.0525, 49.9631, 3.51182e+13
+Center of mass on GPU:
+50.1935, 50.0523, 49.9633, 3.51181e+13
+
+N: 30720
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 60
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.007336 s
+Center of mass on CPU:
+50.1128, 50.0254, 50.0256, 3.82779e+13
+Center of mass on GPU:
+50.1128, 50.0252, 50.0258, 3.82778e+13
+
+N: 33280
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 65
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.007944 s
+Center of mass on CPU:
+49.9766, 50.0218, 50.0461, 4.14876e+13
+Center of mass on GPU:
+49.9765, 50.0215, 50.0462, 4.14876e+13
+
+N: 35840
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 70
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.008554 s
+Center of mass on CPU:
+50.0471, 50.0391, 49.9673, 4.47268e+13
+Center of mass on GPU:
+50.0469, 50.0388, 49.9675, 4.47267e+13
+
+N: 38400
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 75
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.009158 s
+Center of mass on CPU:
+50.0145, 50.0572, 49.9883, 4.79186e+13
+Center of mass on GPU:
+50.0143, 50.0568, 49.9886, 4.79184e+13
+
+N: 40960
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 80
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.009763 s
+Center of mass on CPU:
+49.9442, 50.1001, 50.072, 5.11995e+13
+Center of mass on GPU:
+49.9441, 50.0998, 50.0723, 5.11992e+13
+
+N: 43520
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 85
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.010373 s
+Center of mass on CPU:
+50.0436, 50.0731, 50.0383, 5.44166e+13
+Center of mass on GPU:
+50.0436, 50.0727, 50.0387, 5.44163e+13
+
+N: 46080
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 90
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.010982 s
+Center of mass on CPU:
+50.1019, 50.0935, 50.0122, 5.76049e+13
+Center of mass on GPU:
+50.1018, 50.0932, 50.0125, 5.76047e+13
+
+N: 48640
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 95
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.011584 s
+Center of mass on CPU:
+50.1078, 50.1076, 50.0627, 6.07364e+13
+Center of mass on GPU:
+50.1077, 50.1074, 50.063, 6.07361e+13
+
+N: 51200
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 100
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.012191 s
+Center of mass on CPU:
+50.1047, 50.0936, 50.0426, 6.39322e+13
+Center of mass on GPU:
+50.1047, 50.0934, 50.0429, 6.39318e+13
+
+N: 53760
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 105
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.012800 s
+Center of mass on CPU:
+50.0747, 50.0441, 50.035, 6.71088e+13
+Center of mass on GPU:
+50.0748, 50.0439, 50.0354, 6.71084e+13
+
+N: 56320
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 110
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.022988 s
+Center of mass on CPU:
+50.0849, 50.0141, 50.0212, 7.02621e+13
+Center of mass on GPU:
+50.366, 50.1166, 50.152, 3.05132e+13
+
+N: 58880
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 115
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.024024 s
+Center of mass on CPU:
+50.0811, 50.0336, 50.0589, 7.34124e+13
+Center of mass on GPU:
+50.1781, 50.0011, 49.9427, 4.77818e+13
+
+N: 61440
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 120
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.025070 s
+Center of mass on CPU:
+50.0828, 50.0331, 50.0506, 7.65876e+13
+Center of mass on GPU:
+49.6797, 50.0789, 50.0675, 9.51383e+12
+
+N: 64000
+dt: 0.010000
+steps: 1
+threads/block: 512
+blocks/grid: 125
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 0.026109 s
+Center of mass on CPU:
+50.0368, 50.0158, 50.0451, 7.97685e+13
+Center of mass on GPU:
+50.376, 50.5894, 50.0965, 1.65166e+13
+
