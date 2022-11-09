@@ -12,5 +12,5 @@ ml CUDA/11.7.0
 ml Python/3.10.4-GCCcore-11.3.0
 
 cd $PROJECT_DIR
-bash evaluate_runtime.sh
+bash  evaluate_cpu_runtime.sh
 
