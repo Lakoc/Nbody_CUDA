@@ -12,3 +12,4 @@ for i in $(seq 1 10); do
   N_START="N=${N}"
 done
 
+sed -i "/${N_START}/c\\N=2048" Makefile
