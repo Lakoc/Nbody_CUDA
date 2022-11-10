@@ -1,0 +1,61 @@
+==PROF== Connected to process 89362 (/home/lakoc/PCG_NBODY/step4/nbody)
+N: 16384
+dt: 0.010000
+steps: 1
+threads/block: 256
+blocks/grid: 64
+reduction threads/block: 128
+reduction blocks/grid: 32
+Input file contains more elements than required! Ommiting the rest.
+Time: 1.031226 s
+Center of mass on CPU:
+50.0042, 50.0113, 50.3366, 2.05343e+13
+Center of mass on GPU:
+50.0043, 50.0114, 50.3366, 2.05343e+13
+==PROF== Disconnected from process 89362
+"ID","Process ID","Process Name","Host Name","Kernel Name","Kernel Time","Context","Stream","Section Name","Metric Name","Metric Unit","Metric Value"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","dram__bytes.sum","byte","468,992"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","l1tex__t_bytes.sum","byte","56,229,888"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","lts__t_bytes.sum","byte","31,483,840"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__cycles_elapsed.avg","cycle","3,451,682.69"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__cycles_elapsed.avg.per_second","cycle/second","1,094,988,060.99"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__inst_executed_pipe_tensor.sum","inst","34,816"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__sass_thread_inst_executed_op_dadd_pred_on.sum","inst","0"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__sass_thread_inst_executed_op_dfma_pred_on.sum","inst","0"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__sass_thread_inst_executed_op_dmul_pred_on.sum","inst","0"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__sass_thread_inst_executed_op_fadd_pred_on.sum","inst","2,416,017,408"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__sass_thread_inst_executed_op_ffma_pred_on.sum","inst","805,650,432"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__sass_thread_inst_executed_op_fmul_pred_on.sum","inst","1,879,097,344"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__sass_thread_inst_executed_op_hadd_pred_on.sum","inst","0"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__sass_thread_inst_executed_op_hfma_pred_on.sum","inst","1,114,112"
+"0","89362","nbody","127.0.0.1","calculate_velocity(t_particles, t_particles, int, float)","2022-Nov-10 15:48:15","1","13","Command line profiler metrics","sm__sass_thread_inst_executed_op_hmul_pred_on.sum","inst","0"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","dram__bytes.sum","byte","268,800"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","l1tex__t_bytes.sum","byte","452,160"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","lts__t_bytes.sum","byte","869,152"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__cycles_elapsed.avg","cycle","57,216.81"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__cycles_elapsed.avg.per_second","cycle/second","1,092,257,460.58"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__inst_executed_pipe_tensor.sum","inst","512"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__sass_thread_inst_executed_op_dadd_pred_on.sum","inst","0"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__sass_thread_inst_executed_op_dfma_pred_on.sum","inst","0"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__sass_thread_inst_executed_op_dmul_pred_on.sum","inst","0"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__sass_thread_inst_executed_op_fadd_pred_on.sum","inst","81,984"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__sass_thread_inst_executed_op_ffma_pred_on.sum","inst","50,624"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__sass_thread_inst_executed_op_fmul_pred_on.sum","inst","0"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__sass_thread_inst_executed_op_hadd_pred_on.sum","inst","0"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__sass_thread_inst_executed_op_hfma_pred_on.sum","inst","16,384"
+"1","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","14","Command line profiler metrics","sm__sass_thread_inst_executed_op_hmul_pred_on.sum","inst","0"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","dram__bytes.sum","byte","269,056"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","l1tex__t_bytes.sum","byte","450,016"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","lts__t_bytes.sum","byte","872,032"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__cycles_elapsed.avg","cycle","58,365.80"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__cycles_elapsed.avg.per_second","cycle/second","1,093,483,893.44"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__inst_executed_pipe_tensor.sum","inst","512"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__sass_thread_inst_executed_op_dadd_pred_on.sum","inst","0"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__sass_thread_inst_executed_op_dfma_pred_on.sum","inst","0"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__sass_thread_inst_executed_op_dmul_pred_on.sum","inst","0"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__sass_thread_inst_executed_op_fadd_pred_on.sum","inst","81,984"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__sass_thread_inst_executed_op_ffma_pred_on.sum","inst","50,624"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__sass_thread_inst_executed_op_fmul_pred_on.sum","inst","0"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__sass_thread_inst_executed_op_hadd_pred_on.sum","inst","0"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__sass_thread_inst_executed_op_hfma_pred_on.sum","inst","16,384"
+"2","89362","nbody","127.0.0.1","centerOfMass(t_particles, float *, float *, float *, float *, int *, int)","2022-Nov-10 15:48:16","1","7","Command line profiler metrics","sm__sass_thread_inst_executed_op_hmul_pred_on.sum","inst","0"
