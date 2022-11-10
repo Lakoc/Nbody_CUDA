@@ -20,8 +20,7 @@ if __name__ == "__main__":
                     break
             df = pd.read_csv(file, skiprows=cnt - 1)
             df = df[df['Kernel Name'] != 'centerOfMass(t_particles, float *, float *, float *, float *, int *, int)']
-
-            dfmetric = dict(zip(df['Metric Name'], df['Metric Value'].str.replace(',', '').astype(float)))
+            dfmetric = dict(zip(df['Metric Name'], df['Metric Value'].astype(float)))
             dfmetric['Count'] = 1
 
             dfmetric['Time'] = dfmetric['sm__cycles_elapsed.avg'] \

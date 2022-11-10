@@ -108,26 +108,33 @@ N            čas CPU [s]    čas GPU [s]    propustnost paměti [MB/s]    výko
 
 Propustnosti a výkon GPU byly měřeny pomoci: https://gitlab.com/NERSC/roofline-on-nvidia-gpus/-/tree/roofline-hackathon-2020/
 
-čas =  sm__cycles_elapsed.avg / sm__cycles_elapsed.avg.per_second
+čas [s] =  sm__cycles_elapsed.avg / sm__cycles_elapsed.avg.per_second
 
-propustnost paměti = dram__bytes.sum.per_second / 1024
+propustnost paměti [MB/s] = dram__bytes.sum.per_second / 1024
 
-výkon = (2 * sm__sass_thread_inst_executed_op_dfma_pred_on.sum + sm__sass_thread_inst_executed_op_dmul_pred_on.sum + sm__sass_thread_inst_executed_op_dadd_pred_on.sum + 2 * sm__sass_thread_inst_executed_op_ffma_pred_on. + sm__sass_thread_inst_executed_op_fmul_pred_on.sum +
+výkon [MFLOP/S] = (2 * sm__sass_thread_inst_executed_op_dfma_pred_on.sum + sm__sass_thread_inst_executed_op_dmul_pred_on.sum + sm__sass_thread_inst_executed_op_dadd_pred_on.sum + 2 * sm__sass_thread_inst_executed_op_ffma_pred_on. + sm__sass_thread_inst_executed_op_fmul_pred_on.sum +
     + sm__sass_thread_inst_executed_op_fadd_pred_on.sum + 2 * sm__sass_thread_inst_executed_op_hfma_pred_on.sum + sm__sass_thread_inst_executed_op_hmul_pred_on.sum + sm__sass_thread_inst_executed_op_hadd_pred_on.sum + 512 * sm__inst_executed_pipe_tensor.sum) / čas / 1024 / 1024
 
 Od jakého počtu částic se vyplatí počítat na grafické kartě?
 
-Díky úpravám a zjedondušení výpočtu, se vyplatí počítat na grafické kartě již od nejmenšího počtu částic.
+Díky úpravám a zjednodušení výpočtu, se vyplatí počítat na grafické kartě již od nejmenšího počtu částic.
 
 Krok 5: bonus - srovnání grafických karet
 ======================
 N            čas GPU 1 [s]   propustnost 1 [MB/s]    výkon 1 [MFLOPS]   čas GPU 2 [s]  propustnost 2 [MB/s]    výkon 2 [MFLOPS]
-2^n * 1024      ...            ...            ...          ...             ...               ...                    ...
-    ...         ...            ...            ...          ...             ...               ...                    ...
-    ...         ...            ...            ...          ...             ...               ...                    ...
-
-Pro n 1 az 10
+2048         0.000383       172118.835020            231565.876291      0.000317       197385.042949           278232.726236
+4096         0.000756       161402.988867            469240.058354      0.000624       189981.787402           564653.474178
+8192         0.001507       155900.223857            940971.295509      0.001238       186343.579609           1137360.804103
+16384        0.003152       145286.868604            1792976.797289     0.002632       180064.914541           2139808.202375
+32768        0.007027       128908.811104            3226779.399985     0.006452       139904.032148           3492016.071422
+65536        0.018751       96126.092471             4836760.762754     0.019079       104758.811602           4723279.627004
+131072       0.069807       51487.935068             5180199.309682     0.087078       121412.092754           4139446.314477
+262144       0.263188       27734.748926             5495805.456708     0.323410       101313.596768           4458135.291475
+524288       0.990323       23673.917510             5828235.045855     1.191340       108325.464063           4840929.571209
+1048576      3.809705       147946.435254            6064947.392854     4.475398       112936.214102           5154563.847088
 
 Porovnejte grafické karty z hlediska výkonu a propustnosti paměti.
+
+Nvidia V100 [GPU 2] je rychlejší na menších vstupech, jako možné vysvětlení lze považovat vyšší frekvenci teto karty v base režimu (1245 MHz vs. 1095 MHz). Na větších vstupech již však dominuje větší A100 [GPU 1].
 
 ===================================
