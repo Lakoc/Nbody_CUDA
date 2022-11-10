@@ -13,10 +13,33 @@ SAMPLE_OUTPUT=aaaa
 
 STEP=$1
 
+metrics="sm__cycles_elapsed.avg,\
+sm__cycles_elapsed.avg.per_second,"
 
-PROFILE="/apps/all/CUDA/11.7.0/nsight-compute-2022.2.0/target/linux-desktop-glibc_2_11_3-x64/ncu --force-overwrite --target-processes application-only --replay-mode kernel --kernel-name-base function --launch-skip-before-match 0 --section ComputeWorkloadAnalysis --section InstructionStats --section LaunchStats --section MemoryWorkloadAnalysis --section MemoryWorkloadAnalysis_Chart --section MemoryWorkloadAnalysis_Tables --section Occupancy --section SchedulerStats --section SourceCounters --section SpeedOfLight --section SpeedOfLight_RooflineChart --section WarpStateStats --sampling-interval auto --sampling-max-passes 5 --sampling-buffer-size 33554432 --profile-from-start 1 --cache-control all --clock-control base --apply-rules yes --check-exit-code yes"
+# DP
+metrics+="sm__sass_thread_inst_executed_op_dadd_pred_on.sum,\
+sm__sass_thread_inst_executed_op_dfma_pred_on.sum,\
+sm__sass_thread_inst_executed_op_dmul_pred_on.sum,"
+
+# SP
+metrics+="sm__sass_thread_inst_executed_op_fadd_pred_on.sum,\
+sm__sass_thread_inst_executed_op_ffma_pred_on.sum,\
+sm__sass_thread_inst_executed_op_fmul_pred_on.sum,"
+
+# HP
+metrics+="sm__sass_thread_inst_executed_op_hadd_pred_on.sum,\
+sm__sass_thread_inst_executed_op_hfma_pred_on.sum,\
+sm__sass_thread_inst_executed_op_hmul_pred_on.sum,"
+
+# Tensor Core
+metrics+="sm__inst_executed_pipe_tensor.sum,"
+
+# DRAM, L2 and L1
+metrics+="dram__bytes.sum,\
+lts__t_bytes.sum,\
+l1tex__t_bytes.sum"
 
 for i in $(seq 1 10); do
   N=$((SIZE_1 ** i * SIZE_2))
-  ncu ${STEP}/nbody ${N} ${DT} ${STEPS} ${THREADS_PER_BLOCK[$i-1]} ${WRITE_INTESITY} ${RED_THREADS} ${RED_THREADS_PER_BLOCK} ${SAMPLE_INPUT} ${SAMPLE_OUTPUT}
+  ncu --metrics ${metrics} --csv ${STEP}/nbody ${N} ${DT} ${STEPS} ${THREADS_PER_BLOCK[$i-1]} ${WRITE_INTESITY} ${RED_THREADS} ${RED_THREADS_PER_BLOCK} ${SAMPLE_INPUT} ${SAMPLE_OUTPUT} > profile_${i}.out 2>&1
 done
