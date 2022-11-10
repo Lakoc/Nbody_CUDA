@@ -95,18 +95,26 @@ K zrychlení dochází kvůli tomu, že hodnoty jsou načteny do sdílené pamě
 Krok 5: analýza výkonu
 ======================
 N            čas CPU [s]    čas GPU [s]    propustnost paměti [MB/s]    výkon [MFLOPS]    zrychlení [-]     vláken/blok [-]
-2048         0.057312       0.000383       8350978.424712               231565.876291     149.64            128
-4096         0.227922       0.000756       15111668.073024              469240.058354     301.48            128
-8192         0.910145       0.001507       28667110.276139              940971.295509     603.94            128
-16384        3.63661        0.003152       27318827.335041              1792976.797289    1153.75           256
-32768        14.546         0.007027       75581150.844339              3226779.399985    2070.02           128
-65536        58.1601        0.018751       131736787.884714             4836760.762754    3101.71           128
-131072       232.677        0.069807       75028243.047928              5180199.309682    3333.15           256
-262144       930.494        0.263188       79780433.119667              5495805.456708    3535.47           256
-524288       4*930.494      0.990323       21565716.579269              5828235.045855    3758.35           1024
-1048576      16*930.494     3.809705       44514441.509216              6064947.392854    3907.89           512
+2048         0.057312       0.000383       172118.835020                231565.876291     149.64            128
+4096         0.227922       0.000756       161402.988867                469240.058354     301.48            128
+8192         0.910145       0.001507       155900.223857                940971.295509     603.94            128
+16384        3.63661        0.003152       145286.868604                1792976.797289    1153.75           256
+32768        14.546         0.007027       128908.811104                3226779.399985    2070.02           128
+65536        58.1601        0.018751       96126.092471                 4836760.762754    3101.71           128
+131072       232.677        0.069807       51487.935068                 5180199.309682    3333.15           256
+262144       930.494        0.263188       27734.748926                 5495805.456708    3535.47           256
+524288       4*930.494      0.990323       23673.917510                 5828235.045855    3758.35           1024
+1048576      16*930.494     3.809705       147946.435254                6064947.392854    3907.89           512
 
 Propustnosti a výkon GPU byly měřeny pomoci: https://gitlab.com/NERSC/roofline-on-nvidia-gpus/-/tree/roofline-hackathon-2020/
+
+čas =  sm__cycles_elapsed.avg / sm__cycles_elapsed.avg.per_second
+
+propustnost paměti = dram__bytes.sum.per_second / 1024
+
+výkon = (2 * sm__sass_thread_inst_executed_op_dfma_pred_on.sum + sm__sass_thread_inst_executed_op_dmul_pred_on.sum + sm__sass_thread_inst_executed_op_dadd_pred_on.sum + 2 * sm__sass_thread_inst_executed_op_ffma_pred_on. + sm__sass_thread_inst_executed_op_fmul_pred_on.sum +
+    + sm__sass_thread_inst_executed_op_fadd_pred_on.sum + 2 * sm__sass_thread_inst_executed_op_hfma_pred_on.sum + sm__sass_thread_inst_executed_op_hmul_pred_on.sum + sm__sass_thread_inst_executed_op_hadd_pred_on.sum + 512 * sm__inst_executed_pipe_tensor.sum) / čas / 1024 / 1024
+
 Od jakého počtu částic se vyplatí počítat na grafické kartě?
 
 Díky úpravám a zjedondušení výpočtu, se vyplatí počítat na grafické kartě již od nejmenšího počtu částic.
