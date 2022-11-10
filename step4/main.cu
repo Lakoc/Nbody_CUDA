@@ -193,6 +193,7 @@ int main(int argc, char **argv) {
     // Replacement of std::swap with indexing mod step -> synchronization over epochs would be necessary with std::swap
     t_particles *particles[2] = {&particles_gpu_curr, &particles_gpu_next};
 
+
     for (int s = 0; s < steps; s++) {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //                                       FILL IN: kernels invocation (step 0)                                     //
@@ -236,19 +237,20 @@ int main(int argc, char **argv) {
             // Event to enable writing particle_data to output file (3.5.1. III)
             gpuErrCheck(cudaEventRecord(particles_copied, velocity_stream))
 
+            // Default synchronization after t[n] center of mass calculation is preserved (3.5.1. VII)
+            gpuErrCheck(cudaMemcpyAsync(comCPU, comGPU, sizeof(float4), cudaMemcpyDeviceToHost, com_stream))
+
+            // Event to enable writing particle_data to output file (3.5.1. III)
+            gpuErrCheck(cudaEventRecord(com_copied, com_stream))
+
             // Writing to disk of particle_data t[n] has to wait for t[n-1] particle_data calculation (3.5.1. VI)
             gpuErrCheck(cudaStreamWaitEvent(velocity_stream, particles_updated))
 
             // Writing to disk has to wait for copy to finish (3.5.1. VIII)
             // There is no synchronization in following lines, thus copying in parallel with writing to stdout is enabled (3.5.1. VIII)
             gpuErrCheck(cudaEventSynchronize(particles_copied))
+
             h5Helper.writeParticleData(record_num);
-
-            // Default synchronization after t[n] center of mass calculation is preserved (3.5.1. VII)
-            gpuErrCheck(cudaMemcpyAsync(comCPU, comGPU, sizeof(float4), cudaMemcpyDeviceToHost, com_stream))
-
-            // Event to enable writing particle_data to output file (3.5.1. III)
-            gpuErrCheck(cudaEventRecord(com_copied, com_stream))
 
             // Writing to disk has to wait for copy to finish (3.5.1. IX -> derived not directly)
             gpuErrCheck(cudaEventSynchronize(com_copied))
