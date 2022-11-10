@@ -13,4 +13,5 @@ ml CUDA/11.7.0
 
 cd $PROJECT_DIR/$STEP
 make
-bash evaluate_gpu_runtime.sh
+cd $PROJECT_DIR
+bash evaluate_gpu_runtime.sh $STEP
