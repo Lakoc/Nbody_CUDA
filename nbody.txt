@@ -102,9 +102,9 @@ N            čas CPU [s]    čas GPU [s]    propustnost paměti [MB/s]    výko
 32768        14.546
 65536        58.1601
 131072       232.677
-2621456
-5242912
-10485824
+2621456      930.494
+5242912      3721.953
+10485824     14887.862
 
 Od jakého počtu částic se vyplatí počítat na grafické kartě?
 
