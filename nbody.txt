@@ -95,11 +95,16 @@ K zrychlení dochází kvůli tomu, že hodnoty jsou načteny do sdílené pamě
 Krok 5: analýza výkonu
 ======================
 N            čas CPU [s]    čas GPU [s]    propustnost paměti [MB/s]    výkon [MFLOPS]    zrychlení [-]
-2^n * 1024      ...            ...            ...                          ...               ...
-    ...         ...            ...            ...                          ...               ...
-    ...         ...            ...            ...                          ...               ...
-
-Pro n 1 az 10
+2048         0.057312
+4096         0.227922
+8192         0.910145
+16384        3.63661
+32768        14.546
+65536        58.1601
+131072       232.677
+2621456
+5242912
+10485824
 
 Od jakého počtu částic se vyplatí počítat na grafické kartě?
 
