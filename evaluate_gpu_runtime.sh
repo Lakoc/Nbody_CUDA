@@ -35,9 +35,7 @@ sm__sass_thread_inst_executed_op_hmul_pred_on.sum,"
 metrics+="sm__inst_executed_pipe_tensor.sum,"
 
 # DRAM, L2 and L1
-metrics+="dram__bytes.sum,\
-lts__t_bytes.sum,\
-l1tex__t_bytes.sum"
+metrics+="dram__bytes.sum.per_second"
 
 for i in $(seq 1 10); do
   N=$((SIZE_1 ** i * SIZE_2))
