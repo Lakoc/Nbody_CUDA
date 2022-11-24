@@ -34,7 +34,7 @@ sm__sass_thread_inst_executed_op_hmul_pred_on.sum,"
 # Tensor Core
 metrics+="sm__inst_executed_pipe_tensor.sum,"
 
-# DRAM, L2 and L1
+# DRAM
 metrics+="dram__bytes.sum.per_second"
 
 for i in $(seq 1 10); do
