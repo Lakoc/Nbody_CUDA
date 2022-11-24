@@ -12,16 +12,6 @@
 #include <cfloat>
 #include "nbody.h"
 
-/**
- * Aux function to get size of dynamic shared memory
- * Author: einpoklum  Source: https://stackoverflow.com/questions/42309369/can-my-kernel-code-tell-how-much-shared-memory-it-has-available
- * @return Size of dynamic shared memory
- */
-__forceinline__ __device__ unsigned dynamic_smem_size() {
-    unsigned ret;
-    asm volatile ("mov.u32 %0, %dynamic_smem_size;" : "=r"(ret));
-    return ret;
-}
 
 /**
  * CUDA kernel to calculate gravitation velocity
@@ -211,6 +201,9 @@ centerOfMass(t_particles p, float *comX, float *comY, float *comZ, float *comW, 
         *comY += diff.y * diff.w;
         *comZ += diff.z * diff.w;
         *comW += temp_normalized.w;
+
+        // Clean up cache if n_blocks > SM, and concurrency is enabled
+        __threadfence();
 
         // Leave critical section
         atomicExch(lock, 0);

@@ -222,11 +222,30 @@ int main(int argc, char **argv) {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //                                          FILL IN: synchronization  (step 4)                                    //
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if (s >= writeFreq && writeFreq > 0 && (s % writeFreq == 0)) {
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            //                          FILL IN: synchronization and file access logic (step 4)                             //
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Writing to disk has to wait for copy to finish (3.5.1. VIII)
+            // There is no synchronization in following lines, thus copying in parallel with writing to stdout is enabled (3.5.1. VIII)
+            gpuErrCheck(cudaEventSynchronize(particles_copied))
+
+            h5Helper.writeParticleData(record_num);
+
+            // Writing to disk has to wait for copy to finish (3.5.1. IX -> derived not directly)
+            gpuErrCheck(cudaEventSynchronize(com_copied))
+            h5Helper.writeCom(comCPU->x, comCPU->y, comCPU->z, comCPU->w, record_num);
+
+            // Increment record number
+            record_num += 1;
+        }
 
         if (writeFreq > 0 && (s % writeFreq == 0)) {
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             //                          FILL IN: synchronization and file access logic (step 4)                             //
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Writing to disk of particle_data t[n] has to wait for t[n-1] particle_data calculation (3.5.1. VI)
+            gpuErrCheck(cudaStreamWaitEvent(velocity_stream, particles_updated))
 
             // Default synchronization after t[n] particle_data calculation is preserved (3.5.1. III)
             gpuErrCheck(cudaMemcpyAsync(particles_cpu.pos, (*particles[s % 2]).pos, particles_pos_arr_size,
@@ -242,26 +261,18 @@ int main(int argc, char **argv) {
 
             // Event to enable writing particle_data to output file (3.5.1. III)
             gpuErrCheck(cudaEventRecord(com_copied, com_stream))
-
-            // Writing to disk of particle_data t[n] has to wait for t[n-1] particle_data calculation (3.5.1. VI)
-            gpuErrCheck(cudaStreamWaitEvent(velocity_stream, particles_updated))
-
-            // Writing to disk has to wait for copy to finish (3.5.1. VIII)
-            // There is no synchronization in following lines, thus copying in parallel with writing to stdout is enabled (3.5.1. VIII)
-            gpuErrCheck(cudaEventSynchronize(particles_copied))
-
-            h5Helper.writeParticleData(record_num);
-
-            // Writing to disk has to wait for copy to finish (3.5.1. IX -> derived not directly)
-            gpuErrCheck(cudaEventSynchronize(com_copied))
-            h5Helper.writeCom(comCPU->x, comCPU->y, comCPU->z, comCPU->w, record_num);
-
-            // Increment record number
-            record_num += 1;
         }
     }
 
+    if (writeFreq > 0) {
+        gpuErrCheck(cudaEventSynchronize(particles_copied))
 
+        h5Helper.writeParticleData(record_num);
+
+        // Writing to disk has to wait for copy to finish (3.5.1. IX -> derived not directly)
+        gpuErrCheck(cudaEventSynchronize(com_copied))
+        h5Helper.writeCom(comCPU->x, comCPU->y, comCPU->z, comCPU->w, record_num);
+    }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //              FILL IN: invocation of center-of-mass kernel (step 3.1, step 3.2, step 4)                           //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

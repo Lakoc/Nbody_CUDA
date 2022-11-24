@@ -39,7 +39,7 @@ if __name__ == "__main__":
             dfmetric['TC FLOPs'] = 512 * dfmetric['sm__inst_executed_pipe_tensor.sum']
             dfmetric['all FLOPs'] = dfmetric['CC FLOPs'] + dfmetric['TC FLOPs']
 
-            dfmetric['MB/s'] = dfmetric['dram__bytes.sum.per_second'] / 1024
+            dfmetric['MB/s'] = dfmetric['dram__bytes.sum.per_second'] / 1024 /1024
 
             dfmetric['MFLOP/s'] = dfmetric['all FLOPs'] / dfmetric['Time'] / 1024 / 1024
 

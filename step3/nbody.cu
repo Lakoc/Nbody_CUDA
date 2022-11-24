@@ -133,7 +133,7 @@ __global__ void calculate_velocity(t_particles p_curr,
 
 
 __global__ void
-centerOfMass(t_particles p, float *comX, float *comY, float *comZ, float *comW, int *lock, const int N) {
+centerOfMass(t_particles p, float * volatile comX, float *comY, float *comZ, float *comW, int *lock, const int N) {
     extern __shared__ float shared[];
     // Reinterpret shared memory to float4*, for simple indexing
     auto *shared_pos = reinterpret_cast<float4 *>(shared);
@@ -211,6 +211,9 @@ centerOfMass(t_particles p, float *comX, float *comY, float *comZ, float *comW, 
         *comY += diff.y * diff.w;
         *comZ += diff.z * diff.w;
         *comW += temp_normalized.w;
+
+        // Clean up cache if n_blocks > SM, and concurrency is enabled
+        __threadfence();
 
         // Leave critical section
         atomicExch(lock, 0);
