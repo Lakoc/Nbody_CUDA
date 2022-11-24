@@ -222,6 +222,9 @@ int main(int argc, char **argv) {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //                                          FILL IN: synchronization  (step 4)                                    //
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Write operations are delayed by writeFreq, to firstly fill GPU queues with following iterations (s+1, ..., s+writeFreq),
+        // in this way IO operations doesn't block GPU computation, if they are enough of them to cover IO.
+        // There is no way CPU data will be rewritten by next iterations, since this `if block` blocks following mem copies.
         if (s >= writeFreq && writeFreq > 0 && (s % writeFreq == 0)) {
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             //                          FILL IN: synchronization and file access logic (step 4)                             //
@@ -239,7 +242,7 @@ int main(int argc, char **argv) {
             // Increment record number
             record_num += 1;
         }
-
+        // Copies data when they are available
         if (writeFreq > 0 && (s % writeFreq == 0)) {
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             //                          FILL IN: synchronization and file access logic (step 4)                             //
@@ -263,7 +266,7 @@ int main(int argc, char **argv) {
             gpuErrCheck(cudaEventRecord(com_copied, com_stream))
         }
     }
-
+    // Since writes are delayed by 1, there is need to finish write with last record.
     if (writeFreq > 0) {
         gpuErrCheck(cudaEventSynchronize(particles_copied))
 
